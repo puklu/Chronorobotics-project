@@ -1,6 +1,7 @@
 from copyreg import pickle
 import pickle
 import os
+from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 import uuid
@@ -11,9 +12,13 @@ from minio.error import S3Error
 
 import io
 
-END_POINT = "localhost:9000"
-ACCESS_KEY = "vivek"
-SECRET_KEY = "vivek123"
+from dotenv import load_dotenv
+
+
+load_dotenv()
+END_POINT = os.getenv("END_POINT")
+ACCESS_KEY = os.getenv("ACCESS_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 OBJECTS_PATH = "objects/environment/"
 ENV_BUCKET = "environment"
@@ -23,6 +28,8 @@ DOWNLOADED_MAPS_PATH ='downloaded_objects/maps/'
 DOWNLOADED_ENVS_PATH ='downloaded_objects/envs/'
 TO_UPLOAD_PATH = 'to_upload/'
 
+
+
 class Features():
     def __init__(self) -> None:
         self.shape = None
@@ -30,18 +37,17 @@ class Features():
 
 
 class Environment:
-    def __init__(self, name, gps_position, nodes, edges, map_metadata) -> None:
+    def __init__(self, name, gps_position, nodes, edges) -> None:
         self.name = name
         self.gps_position = gps_position
         self.nodes = nodes
         self.edges = edges
-        self.map_metadata = map_metadata
+        self.map_metadata = []
 
     def pickle_env(self):
         with open("pickled_env.pkl", 'wb') as f:
             pickle.dump(self, f)
         
-
     def read_pickled_env(self,file_path):
         with open(file_path, 'rb') as f:
             env_data = pickle.load(f)   
@@ -60,14 +66,13 @@ class Map:
         self.trans = trans
         self.times = times
         
-        self.env_id = self.name+"."+self.start_node+"."+self.end_node
+        # self.env_id = self.name+"."+self.start_node+"."+self.end_node
         
     def fetch_place(self, map_no, idx):
         return {"image": self.images[map_no][idx],
                 "distance": self.distances[map_no][idx],
                 "trans": self.trans[map_no][idx],
                 "time":self.times[map_no][idx]}
-
 
     def pickle_map(self):
         with open("pickled_map.pkl", 'wb') as f:
@@ -91,20 +96,25 @@ class Map:
 
 
 
-def load_map(mappaths, images, distances, trans, times):
+def load_map(mappaths):
+
+    images = []
+    distances = []
+    trans = []
+    times= []
 
     if "," in mappaths:
         mappaths = mappaths.split(",")
     else:
         mappaths = [mappaths]
-   
+
     for map_idx, mappath in enumerate(mappaths):
         tmp = []
         for file in list(os.listdir(mappath)):
             if file.endswith(".npy"):
                 tmp.append(file[:-4])
         print(str(len(tmp)) + " images found in the map")
-       
+    
         # rospy.logwarn(str(len(tmp)) + " images found in the map")
         tmp.sort(key=lambda x: float(x))
         
@@ -138,8 +148,8 @@ def load_map(mappaths, images, distances, trans, times):
                 if diff_hist is not None:
                     tmp_trans.append(diff_hist)
                 # rospy.loginfo("Loaded feature: " + dist + str(".npy"))
-                print("Loaded feature: " + dist + str(".npy"))
-      
+                # print("Loaded feature: " + dist + str(".npy"))
+    
         tmp_times[-1] = tmp_times[-2]  # to avoid very long period before map end
         images.append(tmp_images)
         distances.append(tmp_distances)
@@ -147,6 +157,8 @@ def load_map(mappaths, images, distances, trans, times):
         times.append(tmp_times)
         # rospy.logwarn("Whole map " + str(mappath) + " sucessfully loaded")
         print("Whole map " + str(mappath) + " sucessfully loaded")
+
+        return images, distances, trans, times
 
 
 # def map_upload(map_data):
@@ -167,7 +179,7 @@ def map_upload(map_data):
         env_id of the object    
     """
     global client
-    obj_name = map_data.env_id  # using the map object's env_id as object name in db
+    obj_name = map_data.name 
 
     # check if the map exists in db
     try:
@@ -195,7 +207,7 @@ def env_upload(env_data):
     Args:
         A object instance of class Environment   
     """
-    obj_name= env_data.map_metadata
+    obj_name= env_data.name
     # check if the env variables exist for the map in db
     try:
         # client.stat_object(bucket_name=ENV_BUCKET, object_name=obj_name)
@@ -215,33 +227,47 @@ def env_upload(env_data):
 
 def main():
 
-    images = []
-    distances = []
-    trans = []
-    times= []
-    mappaths = 'objects/test_map/map0' #,objects/test_map/map1'
-    
-    GPS_POSITION = '142.43.1'
+    objects_path = Path("objects/")
+    maps_path = objects_path / "maps"
 
-    # load the map
-    load_map(mappaths=mappaths, images=images, distances=distances, trans=trans, times=times )
+    number_of_environments = len(list(os.listdir((maps_path))))  # count of all the environments
+    environments = list(os.listdir((maps_path)))  # list of all the environments
    
-    # map object
-    map0 = Map(name='kn', start_node='main_gate', end_node='library', images=images, distances=distances, trans=trans, times=times)
 
-    # uploading the map object to db
-    map_metadata = map_upload(map0) 
+    for i in range(number_of_environments):   # iterating over each envrionment
+        env_obj = Environment(name=environments[i], gps_position=None, nodes=None, edges=None) # env object for the cirrent environment
 
-    # env object
-    env0 = Environment(name=map0.name, gps_position=GPS_POSITION, nodes=None, edges=None, map_metadata=map_metadata)
+        number_of_maps = len(list(os.listdir((maps_path / environments[i])))) # count of all the maps for the current environment
 
-    # uploading the environment obj to db
-    env_upload(env0)
+        map_paths_for_env = []
 
+        for j in range(number_of_maps):
+            # for loading the maps for the environment
+            images = []
+            distances = []
+            trans = []
+            times= []
+               
+            maps = list(os.listdir((maps_path / environments[i])))  
+            map_paths_for_env.append('objects/maps/'+environments[i]+'/'+maps[j]) # paths of all the maps for the current environment
+            mappaths = ','.join(map_paths_for_env)
 
+            # laoding all the maps of the current environment
+            images, distances, trans, times = load_map(mappaths=mappaths)
 
+            # Map object for the map
+            name = f"{environments[i]}.{maps[j]}"  # name to be used for the map object
+            map_obj = Map(name=name, start_node=None, end_node=None , images=images, distances=distances, trans=trans, times=times)
 
+            # updating the map_metadata for the environment
+            env_obj.map_metadata.append(name)
 
+            # upload the map object
+            map_upload(map_data=map_obj)
+
+        # upload the environment object
+        env_upload(env_data=env_obj)
+            
 
 if __name__ == "__main__":
 

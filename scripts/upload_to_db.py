@@ -45,7 +45,7 @@ class Environment:
         self.map_metadata = []
 
     def pickle_env(self):
-        with open("pickled_env.pkl", 'wb') as f:
+        with open("to_upload/pickled_env.pkl", 'wb') as f:
             pickle.dump(self, f)
         
     def read_pickled_env(self,file_path):
@@ -75,7 +75,7 @@ class Map:
                 "time":self.times[map_no][idx]}
 
     def pickle_map(self):
-        with open("pickled_map.pkl", 'wb') as f:
+        with open("to_upload/pickled_map.pkl", 'wb') as f:
             pickle.dump(self, f)
         
 

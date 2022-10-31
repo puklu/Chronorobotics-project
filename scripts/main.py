@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 import uuid
+import urllib3
 
 from unicodedata import name
 from minio import Minio
@@ -26,7 +27,7 @@ MAP_BUCKET = "maps"
 
 DOWNLOADED_MAPS_PATH ='downloaded_objects/maps/'
 DOWNLOADED_ENVS_PATH ='downloaded_objects/envs/'
-TO_UPLOAD_PATH = 'to_upload/'
+TO_UPLOAD_PATH = 'pickled_objects/'
 
 
 
@@ -45,7 +46,7 @@ class Environment:
         self.map_metadata = []
 
     def pickle_env(self):
-        with open("to_upload/pickled_env.pkl", 'wb') as f:
+        with open(TO_UPLOAD_PATH + "pickled_env.pkl", 'wb') as f:
             pickle.dump(self, f)
         
     def read_pickled_env(self,file_path):
@@ -53,7 +54,6 @@ class Environment:
             env_data = pickle.load(f)   
         return env_data  
 
-    # map metadata - a list containing object names of all maps for this env
 
 class Map:
     def __init__(self, name, start_node, end_node, images, distances, trans, times):
@@ -75,7 +75,7 @@ class Map:
                 "time":self.times[map_no][idx]}
 
     def pickle_map(self):
-        with open("to_upload/pickled_map.pkl", 'wb') as f:
+        with open(TO_UPLOAD_PATH+ "pickled_map.pkl", 'wb') as f:
             pickle.dump(self, f)
         
 
@@ -83,12 +83,6 @@ class Map:
         with open(file_path, 'rb') as f:
             map_data = pickle.load(f)   
         return map_data
-
-    # def fetch_map(self):
-    #     try:
-    #         client.fget_object(bucket_name=MAP_BUCKET, object_name=obj_name, file_path='downloaded_objects/'+obj_name+'.pkl')
-    #         print("Map already exists in db")
-
 
     def read(self):   
         pickled_object = pickle.dumps(self)
@@ -183,18 +177,13 @@ def map_upload(map_data):
 
     # check if the map exists in db
     try:
-        # client.stat_object(bucket_name=ENV_BUCKET, object_name=obj_name)
         client.fget_object(bucket_name=MAP_BUCKET, object_name=obj_name, file_path=DOWNLOADED_MAPS_PATH + obj_name+'.pkl')
         print("Map already exists in db. Downloading....")
     
     # if the map doesn't exist in db, then upload
     except:
         map_data.pickle_map()
-        # pickle_map(map_data)
-        # try:
-        #     client.stat_object(bucket_name=MAP_BUCKET, object_name='map')  # or stat_object can be used to check existence
-        # except:    
-        
+
         client.fput_object(bucket_name=MAP_BUCKET, object_name=obj_name,file_path=TO_UPLOAD_PATH +'pickled_map.pkl', metadata={"env_id":map_data.env_id})
         print("Map uploaded to db")     
 
@@ -210,29 +199,38 @@ def env_upload(env_data):
     obj_name= env_data.name
     # check if the env variables exist for the map in db
     try:
-        # client.stat_object(bucket_name=ENV_BUCKET, object_name=obj_name)
         client.fget_object(bucket_name=ENV_BUCKET, object_name=obj_name, file_path=DOWNLOADED_ENVS_PATH + obj_name+'.pkl')
         print("Env already exists in db. Downloading....")
     
     # if the map doesn't exist in db, then upload
     except:
         env_data.pickle_env()
-        # pickle_map(map_data)
-        # try:
-        #     client.stat_object(bucket_name=ENV_BUCKET, object_name='map')  # or stat_object can be used to check existence
-        # except:    
+           
         client.fput_object(bucket_name=ENV_BUCKET, object_name=obj_name,file_path=TO_UPLOAD_PATH + 'pickled_env.pkl')
         print("uploaded env")     
-    
 
-def main():
+def create_buckets(): 
+    # create the buckets
+    found = client.bucket_exists(MAP_BUCKET)
+    if not found:
+        client.make_bucket(MAP_BUCKET)
+    else:
+        print(f"Bucket {MAP_BUCKET} already exists")
+
+    found = client.bucket_exists(ENV_BUCKET)
+    if not found:
+        client.make_bucket(ENV_BUCKET)
+    else:
+        print(f"Bucket {ENV_BUCKET }already exists")    
+       
+
+def upload_objects():
 
     objects_path = Path("objects/")
     maps_path = objects_path / "maps"
 
-    number_of_environments = len(list(os.listdir((maps_path))))  # count of all the environments
-    environments = list(os.listdir((maps_path)))  # list of all the environments
-   
+    number_of_environments = len(list(os.listdir(maps_path)))  # count of all the environments
+    environments = list(os.listdir(maps_path))  # list of all the environments
 
     for i in range(number_of_environments):   # iterating over each envrionment
         env_obj = Environment(name=environments[i], gps_position=None, nodes=None, edges=None) # env object for the cirrent environment
@@ -267,8 +265,23 @@ def main():
 
         # upload the environment object
         env_upload(env_data=env_obj)
-            
 
+
+def fetch_maps(env):
+    """
+    Fetches maps for an environment
+    Args:
+        env: Environment for which maps are to be fetched
+    """
+    try:
+        response = client.get_object(ENV_BUCKET, env)
+    finally:
+        response.close()
+        response.release_conn()  
+
+    return response.getheaders()  # HOW TO READ THE DATA RETURNED BY get_object ???
+
+ 
 if __name__ == "__main__":
 
     client = Minio( END_POINT,
@@ -276,21 +289,17 @@ if __name__ == "__main__":
             secret_key=SECRET_KEY,
             secure=False)
 
-    # create the buckets
-    found = client.bucket_exists(MAP_BUCKET)
-    if not found:
-        client.make_bucket(MAP_BUCKET)
-    else:
-        print(f"Bucket {MAP_BUCKET} already exists")
+    # create_buckets()    
 
-    found = client.bucket_exists(ENV_BUCKET)
-    if not found:
-        client.make_bucket(ENV_BUCKET)
-    else:
-        print(f"Bucket {ENV_BUCKET }already exists")    
-        
+    # upload_objects()
 
-    main()
+    env_reached = 'env0'
+
+    print((fetch_maps(env_reached)))
+
+
+    
+
     
     
 

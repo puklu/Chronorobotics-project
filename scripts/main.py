@@ -1,11 +1,12 @@
+import sys
 from copyreg import pickle
 import pickle
 import os
 from pathlib import Path
 import numpy as np
-import matplotlib.pyplot as plt
 import uuid
 import urllib3
+import argparse
 
 from unicodedata import name
 from minio import Minio
@@ -284,6 +285,11 @@ def fetch_maps(env):
  
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('-e', help="Name of the environment for which maps need to be fetched")
+    args = parser.parse_args()
+
+
     client = Minio( END_POINT,
             access_key=ACCESS_KEY,
             secret_key=SECRET_KEY,
@@ -293,9 +299,13 @@ if __name__ == "__main__":
 
     # upload_objects()
 
-    env_reached = 'env0'
-
-    print((fetch_maps(env_reached)))
+    if args.e:
+        env_reached = args.e
+        print(fetch_maps(env_reached))
+    else:
+        print("No environment provided")  
+        env_reached = 'env0'   # TODO: just for testing, remove later
+        print(fetch_maps(env_reached))  
 
 
     

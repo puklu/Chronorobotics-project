@@ -30,6 +30,28 @@ DOWNLOADED_MAPS_PATH ='downloaded_objects/maps/'
 DOWNLOADED_ENVS_PATH ='downloaded_objects/envs/'
 TO_UPLOAD_PATH = 'pickled_objects/'
 
+client = Minio( END_POINT,
+            access_key=ACCESS_KEY,
+            secret_key=SECRET_KEY,
+            secure=False)
+
+def main():
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('-e', help="Name of the environment for which maps need to be fetched")
+    args = parser.parse_args()
+
+    # create_buckets()    # TODO: to uncomment
+
+    # upload_objects()    # TODO: to uncomment
+
+    if args.e:
+        env_reached = args.e
+        print(fetch_maps(env_reached))
+    else:
+        print("No environment provided")  
+        env_reached = 'env0'   # TODO: just for testing, remove later
+        print(fetch_maps(env_reached))  
+
 
 
 class Features():
@@ -45,6 +67,13 @@ class Environment:
         self.nodes = nodes
         self.edges = edges
         self.map_metadata = []
+
+    def __repr__(self):
+        return {"name": self.name,
+                "gps_position": self.gps_position,
+                "nodes": self.nodes,
+                "edges":self.edges,
+                "map_metadata": self.map_metadata}    
 
     def pickle_env(self):
         with open(TO_UPLOAD_PATH + "pickled_env.pkl", 'wb') as f:
@@ -69,11 +98,15 @@ class Map:
         
         # self.env_id = self.name+"."+self.start_node+"."+self.end_node
         
-    def fetch_place(self, map_no, idx):
-        return {"image": self.images[map_no][idx],
-                "distance": self.distances[map_no][idx],
-                "trans": self.trans[map_no][idx],
-                "time":self.times[map_no][idx]}
+    def _repr__(self):
+        return {"env_id": self.env_id,
+                "name" : self.name,
+                "start_node": self.start_node,
+                "end_node": self.end_node,
+                "image": self.images,
+                "distance": self.distances,
+                "trans": self.trans,
+                "time":self.times}
 
     def pickle_map(self):
         with open(TO_UPLOAD_PATH+ "pickled_map.pkl", 'wb') as f:
@@ -156,15 +189,6 @@ def load_map(mappaths):
         return images, distances, trans, times
 
 
-# def map_upload(map_data):
-#     # try:
-#     #     client.stat_object(bucket_name=ENV_BUCKET, object_name='map')  # or stat_object can be used to check existence
-#     # except:    
-#     obj_name = map_data.env_id
-#     client.put_object(bucket_name=MAP_BUCKET, object_name=obj_name,data=(map_data), length=5000000)#, part_size = 50000000)
-#     print("uploaded")   
-
-
 def map_upload(map_data):
     """
     Uploads a map object  to db
@@ -184,7 +208,8 @@ def map_upload(map_data):
     # if the map doesn't exist in db, then upload
     except:
         map_data.pickle_map()
-
+        # TODO: To change it to put_object
+        # client.put_object(bucket_name=MAP_BUCKET, object_name=obj_name,data=(map_data), length=5000000)#, part_size = 50000000)
         client.fput_object(bucket_name=MAP_BUCKET, object_name=obj_name,file_path=TO_UPLOAD_PATH +'pickled_map.pkl', metadata={"env_id":map_data.env_id})
         print("Map uploaded to db")     
 
@@ -197,6 +222,7 @@ def env_upload(env_data):
     Args:
         A object instance of class Environment   
     """
+    global client
     obj_name= env_data.name
     # check if the env variables exist for the map in db
     try:
@@ -210,7 +236,9 @@ def env_upload(env_data):
         client.fput_object(bucket_name=ENV_BUCKET, object_name=obj_name,file_path=TO_UPLOAD_PATH + 'pickled_env.pkl')
         print("uploaded env")     
 
+
 def create_buckets(): 
+    global client
     # create the buckets
     found = client.bucket_exists(MAP_BUCKET)
     if not found:
@@ -274,39 +302,17 @@ def fetch_maps(env):
     Args:
         env: Environment for which maps are to be fetched
     """
+    global client
     try:
         response = client.get_object(ENV_BUCKET, env)
     finally:
         response.close()
         response.release_conn()  
 
-    return response.getheaders()  # HOW TO READ THE DATA RETURNED BY get_object ???
+    return response.getheaders()  # TODO: HOW TO READ THE DATA RETURNED BY get_object ???
 
  
-if __name__ == "__main__":
-
-    parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-e', help="Name of the environment for which maps need to be fetched")
-    args = parser.parse_args()
-
-
-    client = Minio( END_POINT,
-            access_key=ACCESS_KEY,
-            secret_key=SECRET_KEY,
-            secure=False)
-
-    # create_buckets()    
-
-    # upload_objects()
-
-    if args.e:
-        env_reached = args.e
-        print(fetch_maps(env_reached))
-    else:
-        print("No environment provided")  
-        env_reached = 'env0'   # TODO: just for testing, remove later
-        print(fetch_maps(env_reached))  
-
+main() 
 
     
 

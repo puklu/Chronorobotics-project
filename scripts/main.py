@@ -40,9 +40,9 @@ def main():
     parser.add_argument('-e', help="Name of the environment for which maps need to be fetched")
     args = parser.parse_args()
 
-    # create_buckets()    # TODO: to uncomment
+    create_buckets()    # TODO: to uncomment
 
-    # upload_objects()    # TODO: to uncomment
+    upload_objects()    # TODO: to uncomment
 
     if args.e:
         env_reached = args.e
@@ -50,9 +50,9 @@ def main():
     else:
         print("No environment provided")  
         env_reached = 'env0'   # TODO: just for testing, remove later
-        print(fetch_maps(env_reached))  
+        # print(fetch_maps(env_reached))  
 
-
+    
 
 class Features():
     def __init__(self) -> None:
@@ -201,12 +201,12 @@ def map_upload(map_data):
     obj_name = map_data.name 
 
     # check if the map exists in db
-    try:
-        client.fget_object(bucket_name=MAP_BUCKET, object_name=obj_name, file_path=DOWNLOADED_MAPS_PATH + obj_name+'.pkl')
-        print("Map already exists in db. Downloading....")
+    statobj = client.stat_object(MAP_BUCKET, obj_name, ssec=None, version_id=None, extra_query_params=None)
     
-    # if the map doesn't exist in db, then upload
-    except:
+    if statobj:
+        print("Object already exists in db")
+    
+    else:
         map_data.pickle_map()
         # TODO: To change it to put_object
         # client.put_object(bucket_name=MAP_BUCKET, object_name=obj_name,data=(map_data), length=5000000)#, part_size = 50000000)
@@ -224,13 +224,14 @@ def env_upload(env_data):
     """
     global client
     obj_name= env_data.name
+
     # check if the env variables exist for the map in db
-    try:
-        client.fget_object(bucket_name=ENV_BUCKET, object_name=obj_name, file_path=DOWNLOADED_ENVS_PATH + obj_name+'.pkl')
-        print("Env already exists in db. Downloading....")
+    statobj = client.stat_object(ENV_BUCKET, obj_name, ssec=None, version_id=None, extra_query_params=None)
     
-    # if the map doesn't exist in db, then upload
-    except:
+    if statobj:
+        print("Object already exists in db")
+    
+    else:
         env_data.pickle_env()
            
         client.fput_object(bucket_name=ENV_BUCKET, object_name=obj_name,file_path=TO_UPLOAD_PATH + 'pickled_env.pkl')

@@ -1,6 +1,14 @@
+# Folder with objects
 objects/
 to_upload/
-*.pkl
-.env
-.idea
 temp/
+
+# Pickle files
+*.pkl
+
+# Environment variables
+.env
+.venv
+
+.idea
+__pycache__/

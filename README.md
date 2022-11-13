@@ -9,5 +9,5 @@
                 
 
 
-3. The fetched map and envrionment objects are stored in project/fetched_objects/maps directory.
+3. The fetched map objects are stored in project/fetched_objects/maps directory.
    The fetched envrionment object is stored in project/fetched_objects/environment directory.

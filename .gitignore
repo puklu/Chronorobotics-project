@@ -5,11 +5,13 @@
 
 # Map
 *.npy
+*.bag
 
 # Photos
 *.jpg
 *.jpeg
 *.png
+
 
 # Pickle files
 *.pkl

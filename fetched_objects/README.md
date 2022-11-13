@@ -3,14 +3,14 @@ This directory contains the fetched maps and fetched environment for a given env
 ```
 fetched_objects
 |
----environment
+|---environment
 |            |
-|            ---env0
+|            |---env0
 | 
----maps
+|---maps
       |
-      ---map0
-      ---map1
+      |---map0
+      |---map1
       .
       .
 

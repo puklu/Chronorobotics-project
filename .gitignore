@@ -1,7 +1,15 @@
 # Folder with objects
-objects/
-to_upload/
-temp/
+# objects/
+# downloaded_objects/
+# fetched_objects/
+
+# Map
+*.npy
+
+# Photos
+*.jpg
+*.jpeg
+*.png
 
 # Pickle files
 *.pkl

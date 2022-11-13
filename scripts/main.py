@@ -6,144 +6,48 @@ import uuid
 import urllib3
 import argparse
 
-from utils import load_map, create_buckets
-from constants import ROOT, OBJECTS_PATH, DOWNLOADED_ENVS_PATH, DOWNLOADED_MAPS_PATH, TO_UPLOAD_PATH, CLIENT, ENV_BUCKET, MAP_BUCKET
-
+from utils import load_map, create_buckets, env_upload, map_upload
+from constants import ROOT, OBJECTS_PATH, CLIENT, ENV_BUCKET, MAP_BUCKET
+from classes_ import Map, Environment
 
 def main():
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-e', help="Name of the environment for which maps need to be fetched")
+    parser.add_argument('-m', help="Name of the environment for which maps need to be fetched")
+    parser.add_argument('-e', help="Name of the environment for which needs to be fetched")
     args = parser.parse_args()
 
-    create_buckets()    # TODO: to uncomment
+    create_buckets()    # create the buckets
 
-    upload_objects()    # TODO: to uncomment
+    upload_objects()    # upload all the maps for all the environments
 
-    if args.e:
+    # if only the maps need to be fetched
+    if args.m and not args.e:  
+        env_reached = args.m
+        maps = fetch_maps(env_reached)  # a dictionary containing all the maps for the environment
+        # environment = fetch_environment(env_reached)  # dictionary containing the environment
+
+        print(maps)
+        
+    # if only environment needs to be fetched
+    elif args.e and not args.m:
         env_reached = args.e
-        maps = fetch_maps(env_reached)  # gets all the maps for the env
+        environment = fetch_environment(env_reached)   # dictionary containing the environment
+
+        print(environment[env_reached].name)
+
+    # if both environment and maps need to be fetched
+    elif args.e and args.m:
+        map_reached = args.m
+        env_reached = args.e
+        maps = fetch_maps(map_reached)  # a dictionary containing all the maps for the environment
+        environment = fetch_environment(env_reached)  # dictionary containing the environment
+
+        print(environment, maps)
+
+    # if no argument is provided
     else:
-        print("No environment provided")  
-        env_reached = 'env0'   # TODO: just for testing, remove later
-        maps = fetch_maps(env_reached)  
-
-    for key in maps:  # printing out the maps
-        print(maps[key])
-
-
-class Features():
-    def __init__(self) -> None:
-        self.shape = None
-        self.values = None
-
-
-class Environment:
-    def __init__(self, name, gps_position, nodes, edges) -> None:
-        self.name = name
-        self.gps_position = gps_position
-        self.nodes = nodes
-        self.edges = edges
-        self.map_metadata = []
-
-    # def __repr__(self):
-    #     return {"name": self.name,
-    #             "gps_position": self.gps_position,
-    #             "nodes": self.nodes,
-    #             "edges":self.edges,
-    #             "map_metadata": self.map_metadata}    
-
-    def pickle_env(self):
-        with open(str(TO_UPLOAD_PATH)+ "/" + "pickled_env.pkl", 'wb') as f:
-            pickle.dump(self, f)
-        
-    def read_pickled_env(self,file_path):
-        with open(file_path, 'rb') as f:
-            env_data = pickle.load(f)   
-        return env_data  
-
-
-class Map:
-    def __init__(self, name, start_node, end_node, images, distances, trans, times):
-        self.env_id = None
-        self.name = name
-        self.start_node = start_node
-        self.end_node = end_node
-        self.images = images
-        self.distances = distances
-        self.trans = trans
-        self.times = times
-        
-        # self.env_id = self.name+"."+self.start_node+"."+self.end_node
-        
-    # def __repr__(self):
-    #     return {"env_id": self.env_id,
-    #             "name" : self.name,
-    #             "start_node": self.start_node,
-    #             "end_node": self.end_node,
-    #             "image": self.images,
-    #             "distance": self.distances,
-    #             "trans": self.trans,
-    #             "time":self.times}
-
-    def pickle_map(self):
-        with open(str(TO_UPLOAD_PATH) + "/" + "pickled_map.pkl", 'wb') as f:
-            pickle.dump(self, f)
-        
-
-    def read_pickled_map(self,file_path):
-        with open(file_path, 'rb') as f:
-            map_data = pickle.load(f)   
-        return map_data
-
-    def read(self):   
-        pickled_object = pickle.dumps(self)
-        return pickled_object
-
-
-
-def map_upload(map_data):
-    """
-    Uploads a map object  to db
-    Args:
-        A object instance of class Map
-    Returns:
-        env_id of the object    
-    """
-    global CLIENT
-    obj_name = map_data.name 
-
-    # check if the map exists in db
-    try:
-        statobj = CLIENT.stat_object(MAP_BUCKET, obj_name, ssec=None, version_id=None, extra_query_params=None)
-        print(f"{obj_name} already exists in {MAP_BUCKET}")
-        
-    except:
-        # TODO: To change it to put_object
-        # client.put_object(bucket_name=MAP_BUCKET, object_name=obj_name,data=(map_data), length=5000000)#, part_size = 50000000)
-        map_data.pickle_map()
-        CLIENT.fput_object(bucket_name=MAP_BUCKET, object_name=obj_name,file_path=str(TO_UPLOAD_PATH)+ "/" +'pickled_map.pkl', metadata={"env_id":map_data.env_id})
-        print(f"Map {obj_name} uploaded to {MAP_BUCKET}")     
-
-
-def env_upload(env_data):
-    """
-    Uploads an environment object  to db
-    Args:
-        A object instance of class Environment   
-    """
-    global CLIENT
-    obj_name= env_data.name
-
-    # check if the env variables exist for the map in db
-    try:
-        statobj = CLIENT.stat_object(ENV_BUCKET, obj_name, ssec=None, version_id=None, extra_query_params=None)
-        print(f"{obj_name} already exists in {ENV_BUCKET}")
-    except:
-        # TODO: To change it to put_object
-        # client.put_object(bucket_name=ENV_BUCKET, object_name=obj_name,data=(env_data), length=5000000)#, part_size = 50000000)   
-        env_data.pickle_env()
-        CLIENT.fput_object(bucket_name=ENV_BUCKET, object_name=obj_name,file_path=str(TO_UPLOAD_PATH)+ "/" + 'pickled_env.pkl')
-        print(f"Environment {obj_name} uploaded to {ENV_BUCKET}")     
+        raise Exception("No environment provided")
+     
 
       
 def upload_objects():
@@ -153,6 +57,7 @@ def upload_objects():
     number_of_environments = len(list(os.listdir(maps_path)))  # count of all the environments
     environments = list(os.listdir(maps_path))  # list of all the environments
 
+    print(f"---{environments}------")
     for i in range(number_of_environments):   # iterating over each envrionment
         env_obj =  Environment(name=environments[i], gps_position=None, nodes=None, edges=None) # env object for the cirrent environment
 
@@ -193,6 +98,8 @@ def fetch_maps(env):
     Fetches maps for an environment
     Args:
         env: Environment for which maps are to be fetched
+    Returns:
+        A dict with keys of format "env name"."map name" and values = Map class objects
     """
     global CLIENT
     # try:
@@ -207,11 +114,16 @@ def fetch_maps(env):
     # Workaround until get_object starts working
     maps = {}
 
+    # deleting all existing fetched items from the directory first
+    all_files = os.listdir(f"{ROOT}/fetched_objects/maps/")
+    for f in all_files:
+        os.remove(f"{ROOT}/fetched_objects/maps/{f}")
+
     # downloading all info for the environment as a pkl file
-    CLIENT.fget_object(ENV_BUCKET, env, file_path = f"{ROOT}/temp/environment/map.{env}.pkl")
+    CLIENT.fget_object(ENV_BUCKET, env, file_path = f"{ROOT}/fetched_objects/environment/{env}.pkl")
     
     # reading the downloaded env pkl file
-    with open(f"temp/environment/map.{env}.pkl", 'rb') as f:
+    with open(f"{ROOT}/fetched_objects/environment/{env}.pkl", 'rb') as f:
         map_data = pickle.load(f)   
     
     # extracting map_metadata for the env i.e names of all the maps for the env
@@ -219,13 +131,52 @@ def fetch_maps(env):
 
     # getting all the maps from maps bucket for the env
     for map_ in maps_metadata_for_env:
-        CLIENT.fget_object(MAP_BUCKET, map_, file_path = f"temp/maps/map.{env}.pkl")
-        with open(f"temp/maps/map.{env}.pkl", 'rb') as f:
+        CLIENT.fget_object(MAP_BUCKET, map_, file_path = f"fetched_objects/maps/maps.{env}.pkl")
+        with open(f"fetched_objects/maps/maps.{env}.pkl", 'rb') as f:
             maps[map_] = pickle.load(f)  # storing the MAP objects in a dictionary
     
     return maps  # returning the maps as a dictionary where the key is the map name
     
-main() 
+
+def fetch_environment(env):
+    """
+    Fetches environment details
+    Args:
+        env: Environment which is to be fetched
+    Returns:
+        A dict with key = "env name" and value = Environment class objects
+    """
+    global CLIENT
+    # try:
+    #     response = client.get_object(ENV_BUCKET, env)
+    # finally:
+    #     response.close()
+    #     response.release_conn()  
+
+    # return response.getheaders()  # TODO: HOW TO READ THE DATA RETURNED BY get_object ???
+
+    # TODO: The block needs to be replaced by the block above
+    # Workaround until get_object starts working
+    environment = {}
+
+    # deleting all existing fetched items from the directory first
+    all_files = os.listdir(f"{ROOT}/fetched_objects/environment/")
+    for f in all_files:
+        os.remove(f"{ROOT}/fetched_objects/environment/{f}")
+
+    # downloading all info for the environment as a pkl file
+    CLIENT.fget_object(ENV_BUCKET, env, file_path = f"{ROOT}/fetched_objects/environment/{env}.pkl")
+    
+    # reading the downloaded env pkl file
+    with open(f"fetched_objects/environment/{env}.pkl", 'rb') as f:
+        env_data = pickle.load(f)   
+    
+    environment[env] = env_data
+      
+    return environment  # returning the env as a dictionary where the key is the env name
+    
+
+main()
 
     
 

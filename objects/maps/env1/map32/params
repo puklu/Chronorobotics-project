@@ -1,0 +1,2 @@
+stepSize: 1.0
+odomTopic: /spot/cmd_vel

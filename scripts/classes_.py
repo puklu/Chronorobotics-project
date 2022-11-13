@@ -3,12 +3,6 @@ import pickle
 from pathlib import Path
 from constants import ROOT, OBJECTS_PATH, DOWNLOADED_ENVS_PATH, DOWNLOADED_MAPS_PATH, TO_UPLOAD_PATH
 
-# ROOT = Path(__file__).absolute().parent.parent
-# OBJECTS_PATH = ROOT / "objects/"
-# DOWNLOADED_MAPS_PATH = ROOT / 'downloaded_objects/maps/'
-# DOWNLOADED_ENVS_PATH = ROOT / 'downloaded_objects/envs/'
-# TO_UPLOAD_PATH = ROOT / 'pickled_objects/'
-
 
 class Environment:
     def __init__(self, name, gps_position, nodes, edges) -> None:
@@ -26,7 +20,7 @@ class Environment:
     #             "map_metadata": self.map_metadata}    
 
     def pickle_env(self):
-        with open(TO_UPLOAD_PATH + "pickled_env.pkl", 'wb') as f:
+        with open(str(TO_UPLOAD_PATH) + "/" + "pickled_env.pkl", 'wb') as f:
             pickle.dump(self, f)
         
     def read_pickled_env(self,file_path):
@@ -59,7 +53,7 @@ class Map:
     #             "time":self.times}
 
     def pickle_map(self):
-        with open(TO_UPLOAD_PATH+ "pickled_map.pkl", 'wb') as f:
+        with open(str(TO_UPLOAD_PATH) + "/" + "pickled_map.pkl", 'wb') as f:
             pickle.dump(self, f)
         
 
@@ -72,3 +66,8 @@ class Map:
         pickled_object = pickle.dumps(self)
         return pickled_object
 
+
+class Features:
+    def __init__(self) -> None:
+        self.shape = None
+        self.values = None

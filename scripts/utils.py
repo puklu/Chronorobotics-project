@@ -1,12 +1,12 @@
 import os
 import numpy as np
 from constants import ENV_BUCKET, MAP_BUCKET, CLIENT, TO_UPLOAD_PATH
+from classes_ import Features
 
-
-class Features:
-    def __init__(self) -> None:
-        self.shape = None
-        self.values = None
+# class Features:
+#     def __init__(self) -> None:
+#         self.shape = None
+#         self.values = None
 
 
 def load_map(mappaths):
@@ -90,3 +90,46 @@ def create_buckets():
     else:
         print(f"Bucket {ENV_BUCKET }already exists")    
 
+def env_upload(env_data):
+    """
+    Uploads an environment object  to db
+    Args:
+        A object instance of class Environment   
+    """
+    global CLIENT
+    obj_name= env_data.name
+
+    # check if the env variables exist for the map in db
+    try:
+        statobj = CLIENT.stat_object(ENV_BUCKET, obj_name, ssec=None, version_id=None, extra_query_params=None)
+        print(f"{obj_name} already exists in {ENV_BUCKET}")
+    except:
+        # TODO: To change it to put_object
+        # client.put_object(bucket_name=ENV_BUCKET, object_name=obj_name,data=(env_data), length=5000000)#, part_size = 50000000)   
+        env_data.pickle_env()
+        CLIENT.fput_object(bucket_name=ENV_BUCKET, object_name=obj_name,file_path=str(TO_UPLOAD_PATH)+ "/" + 'pickled_env.pkl')
+        print(f"Environment {obj_name} uploaded to {ENV_BUCKET}")     
+
+
+def map_upload(map_data):
+    """
+    Uploads a map object  to db
+    Args:
+        A object instance of class Map
+    Returns:
+        env_id of the object    
+    """
+    global CLIENT
+    obj_name = map_data.name 
+
+    # check if the map exists in db
+    try:
+        statobj = CLIENT.stat_object(MAP_BUCKET, obj_name, ssec=None, version_id=None, extra_query_params=None)
+        print(f"{obj_name} already exists in {MAP_BUCKET}")
+        
+    except:
+        # TODO: To change it to put_object
+        # client.put_object(bucket_name=MAP_BUCKET, object_name=obj_name,data=(map_data), length=5000000)#, part_size = 50000000)
+        map_data.pickle_map()
+        CLIENT.fput_object(bucket_name=MAP_BUCKET, object_name=obj_name,file_path=str(TO_UPLOAD_PATH)+ "/" +'pickled_map.pkl', metadata={"env_id":map_data.env_id})
+        print(f"Map {obj_name} uploaded to {MAP_BUCKET}")     

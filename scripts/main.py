@@ -57,7 +57,6 @@ def upload_objects():
     number_of_environments = len(list(os.listdir(maps_path)))  # count of all the environments
     environments = list(os.listdir(maps_path))  # list of all the environments
 
-    print(f"---{environments}------")
     for i in range(number_of_environments):   # iterating over each envrionment
         env_obj =  Environment(name=environments[i], gps_position=None, nodes=None, edges=None) # env object for the cirrent environment
 
@@ -73,6 +72,7 @@ def upload_objects():
             times= []
 
             maps = list(os.listdir((maps_path / environments[i])))  
+
             map_paths_for_env.append(str(maps_path) + '/'+ environments[i]+'/'+maps[j]) # paths of all the maps for the current environment
             mappaths = ','.join(map_paths_for_env)
 

@@ -3,11 +3,6 @@ import numpy as np
 from constants import ENV_BUCKET, MAP_BUCKET, CLIENT, TO_UPLOAD_PATH
 from classes_ import Features
 
-# class Features:
-#     def __init__(self) -> None:
-#         self.shape = None
-#         self.values = None
-
 
 def load_map(mappaths):
 
@@ -88,7 +83,7 @@ def create_buckets():
         CLIENT.make_bucket(ENV_BUCKET)
         print(f"Bucket {ENV_BUCKET} created")
     else:
-        print(f"Bucket {ENV_BUCKET }already exists")    
+        print(f"Bucket {ENV_BUCKET } already exists")    
 
 def env_upload(env_data):
     """
@@ -109,7 +104,6 @@ def env_upload(env_data):
         env_data.pickle_env()
         CLIENT.fput_object(bucket_name=ENV_BUCKET, object_name=obj_name,file_path=str(TO_UPLOAD_PATH)+ "/" + 'pickled_env.pkl')
         print(f"Environment {obj_name} uploaded to {ENV_BUCKET}")     
-
 
 def map_upload(map_data):
     """

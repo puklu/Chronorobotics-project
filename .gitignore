@@ -3,6 +3,7 @@
 # downloaded_objects/
 # fetched_objects/
 
+
 # Map
 *.npy
 *.bag
@@ -16,9 +17,11 @@
 # Pickle files
 *.pkl
 
-# Environment variables
+# Environments
 .env
 .venv
+venv/
+env/
 
 .idea
 __pycache__/

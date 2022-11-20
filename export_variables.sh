@@ -1,0 +1,4 @@
+export END_POINT=localhost:9000
+export ACCESS_KEY=12345678
+export SECRET_KEY=12345678
+

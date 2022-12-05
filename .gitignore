@@ -1,5 +1,5 @@
 # Folder with objects
-# objects/
+objects/maps/
 # downloaded_objects/
 # fetched_objects/
 
@@ -7,12 +7,12 @@
 # Map
 *.npy
 *.bag
+*.zip
 
 # Photos
 *.jpg
 *.jpeg
 *.png
-
 
 # Pickle files
 *.pkl

@@ -1,6 +1,5 @@
 from copyreg import pickle
 import pickle
-from pathlib import Path
 from constants import ROOT, OBJECTS_PATH, DOWNLOADED_ENVS_PATH, DOWNLOADED_MAPS_PATH, TO_UPLOAD_PATH
 
 
@@ -10,14 +9,11 @@ class Environment:
         self.gps_position = gps_position
         self.nodes = nodes
         self.edges = edges
-        self.map_metadata = []
-
-    # def __repr__(self):
-    #     return {"name": self.name,
-    #             "gps_position": self.gps_position,
-    #             "nodes": self.nodes,
-    #             "edges":self.edges,
-    #             "map_metadata": self.map_metadata}    
+        self.map_metadata = {'maps_names' : [],
+                             'images': [],
+                             'trans': [],
+                             'times': [],
+                             'distances': []}  
 
     def pickle_env(self):
         with open(str(TO_UPLOAD_PATH) + "/" + "pickled_env.pkl", 'wb') as f:
@@ -39,18 +35,8 @@ class Map:
         self.distances = distances
         self.trans = trans
         self.times = times
-        
         # self.env_id = self.name+"."+self.start_node+"."+self.end_node
         
-    # def __repr__(self):
-    #     return {"env_id": self.env_id,
-    #             "name" : self.name,
-    #             "start_node": self.start_node,
-    #             "end_node": self.end_node,
-    #             "image": self.images,
-    #             "distance": self.distances,
-    #             "trans": self.trans,
-    #             "time":self.times}
 
     def pickle_map(self):
         with open(str(TO_UPLOAD_PATH) + "/" + "pickled_map.pkl", 'wb') as f:

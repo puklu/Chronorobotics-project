@@ -94,14 +94,8 @@ def env_upload(env_data):
     global CLIENT
     obj_name= env_data.name
 
-    # check if the env variables exist for the map in db
-    # try:
-    #     statobj = CLIENT.stat_object(ENV_BUCKET, obj_name, ssec=None, version_id=None, extra_query_params=None)
-    #     print(f"{obj_name} already exists in {ENV_BUCKET} bucket")
-    # except:
-    #     # TODO: To change it to put_object
-    #     # client.put_object(bucket_name=ENV_BUCKET, object_name=obj_name,data=(env_data), length=5000000)#, part_size = 50000000)   
     env_data.pickle_env()
+    # env object is always updated in db even if it already exixsts
     CLIENT.fput_object(bucket_name=ENV_BUCKET, object_name=obj_name,file_path=str(TO_UPLOAD_PATH)+ "/" + 'pickled_env.pkl')
     print(f"Environment {obj_name} uploaded to {ENV_BUCKET} bucket")     
 
@@ -127,22 +121,26 @@ def map_upload(map_data):
         print(f"Map {obj_name} uploaded to {MAP_BUCKET} bucket")     
 
 
-def map_upload2(env_name, obj_name, map_name):
+def map_upload2(env_name, obj_name, map_name, path):
     """
     Uploads a zipped map to db
     Args:
+        path: Path from where file needs to be uploaded
         env_name: name of the environment
         obj_name: name of the map object to be set in the bucket
         map_name: map name on local
     """
 
     global CLIENT
-    
+
     # check if the map exists in db
     try:
         statobj = CLIENT.stat_object(MAP_BUCKET, obj_name, ssec=None, version_id=None, extra_query_params=None)
         print(f"{obj_name} already exists in {MAP_BUCKET} bucket")
         
     except:
-        CLIENT.fput_object(bucket_name=MAP_BUCKET, object_name=obj_name,file_path=f"{str(OBJECTS_PATH)}/maps/{env_name}/{map_name}")
+        CLIENT.fput_object(bucket_name=MAP_BUCKET, object_name=obj_name,file_path=path)
         print(f"Map {obj_name} uploaded to {MAP_BUCKET} bucket")     
+
+
+

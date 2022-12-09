@@ -14,6 +14,11 @@ DOWNLOADED_MAPS_PATH = ROOT / 'downloaded_objects/maps/'
 DOWNLOADED_ENVS_PATH = ROOT / 'downloaded_objects/envs/'
 TO_UPLOAD_PATH = ROOT / 'pickled_objects/'
 
+DOT_ROS_PATH = os.path.expanduser('~/.ros')
+FETCHED_MAPS_PATH = os.path.expanduser('~/.ros/fetched_maps')
+FETCHED_MAP_OBJ_PATH = f"{ROOT}/fetched_objects/maps"
+FETCHED_ENV_OBJ_PATH = f"{ROOT}/fetched_objects/environment"
+
 ENV_BUCKET = "environment"
 MAP_BUCKET = "maps"
 

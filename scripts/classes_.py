@@ -9,20 +9,20 @@ class Environment:
         self.gps_position = gps_position
         self.nodes = nodes
         self.edges = edges
-        self.map_metadata = {'maps_names' : [],
+        self.map_metadata = {'maps_names': [],
                              'images': [],
                              'trans': [],
                              'times': [],
-                             'distances': []}  
+                             'distances': []}
 
     def pickle_env(self):
         with open(str(TO_UPLOAD_PATH) + "/" + "pickled_env.pkl", 'wb') as f:
             pickle.dump(self, f)
-        
-    def read_pickled_env(self,file_path):
+
+    def read_pickled_env(self, file_path):
         with open(file_path, 'rb') as f:
-            env_data = pickle.load(f)   
-        return env_data  
+            env_data = pickle.load(f)
+        return env_data
 
 
 class Map:
@@ -36,19 +36,17 @@ class Map:
         self.trans = trans
         self.times = times
         # self.env_id = self.name+"."+self.start_node+"."+self.end_node
-        
 
     def pickle_map(self):
         with open(str(TO_UPLOAD_PATH) + "/" + "pickled_map.pkl", 'wb') as f:
             pickle.dump(self, f)
-        
 
-    def read_pickled_map(self,file_path):
+    def read_pickled_map(self, file_path):
         with open(file_path, 'rb') as f:
-            map_data = pickle.load(f)   
+            map_data = pickle.load(f)
         return map_data
 
-    def read(self):   
+    def read(self):
         pickled_object = pickle.dumps(self)
         return pickled_object
 

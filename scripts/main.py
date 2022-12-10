@@ -1,7 +1,6 @@
 from copyreg import pickle
 import pickle
 import os
-from pathlib import Path
 import argparse
 from zipfile import ZipFile
 
@@ -9,7 +8,6 @@ from utils import load_map, create_buckets, env_upload, map_upload, map_upload2
 from constants import ROOT, OBJECTS_PATH, CLIENT, ENV_BUCKET, MAP_BUCKET, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, \
     FETCHED_MAPS_PATH, DOT_ROS_PATH
 from classes_ import Map, Environment
-from shutil import make_archive
 
 
 def main():
@@ -21,43 +19,52 @@ def main():
 
     args = parser.parse_args()
 
-    if args.oe and not args.e and not args.m:
-        env_obj = fetch_environment(args.oe)
-        if env_obj:
-            env_map_metadata = env_obj.map_metadata
-            print(env_map_metadata)
-        else:
-            print(f"{args.oe} doesn't exist in db")
-
-    elif not args.e and not args.m and not args.u:
+    # when no arguments are provided, buckets are created and all the maps for all the envs are uploaded
+    if not args.e and not args.m and not args.u and not args.oe:
         create_buckets()  # create the buckets
         upload_objects2()  # upload to db
 
-    elif args.u and args.e:
+    # when only -oe is provided, only env object is fetched
+    elif args.oe and not args.e and not args.m and not args.u:
+        env_obj = fetch_environment(args.oe)
+        if env_obj:
+            env_map_metadata = env_obj.map_metadata
+            print(env_map_metadata['maps_names'])
+        else:
+            print(f"{args.oe} doesn't exist in db")
 
+    # when only -e is provided, all the maps for that particular environment are fetched
+    elif args.e and not args.m and not args.u and not args.oe:
+        fetch_maps2(args.e, args.m)
+
+    # when -e and -m are provided, that particular map is fetched for that environment
+    elif args.e and args.m and not args.u and not args.oe:
+        fetch_maps2(args.e, args.m)
+
+    # when -u and -e are provided, map u is uploaded for env e from .ros
+    elif args.u and args.e and not args.m and not args.oe:
         # zipping the map
         path = f"{DOT_ROS_PATH}/{args.u}"
-        make_archive(f"{DOT_ROS_PATH}/{args.e}.{args.u}", "zip", path)
-        # with ZipFile(f"{DOT_ROS_PATH}/{args.e}.{args.u}.zip", 'w') as zip:
-        #     for path, directories, files in os.walk(path):
-        #         for file in files:
-        #             file_name = os.path.join(path, file)
-        #             zip.write(file_name) # zipping the file
-
+        # make_archive(f"{DOT_ROS_PATH}/{args.e}.{args.u}", "zip", path)
+        with ZipFile(f"{DOT_ROS_PATH}/{args.e}.{args.u}.zip", 'w') as zip:
+            for path, directories, files in os.walk(path):
+                for file in files:
+                    file_name = os.path.join(path, file)
+                    zip.write(file_name, arcname=f"{args.u}/{os.path.basename(file_name)}") # zipping the file
 
         map_obj_name = f"{args.e}.{args.u}.zip"  # name to be used for the map object
-        map_name = f"{args.e}.{args.u}"
+        map_name = f"{args.u}"
 
         # Fetch env obj from db, append to it, then replace the one in db
         env_obj = fetch_environment(args.e)
-        if env_obj:  # if the env exists in db then fetch it
-            env_map_metadata = env_obj.map_metadata
+        if env_obj:  # if the env exists in db then update it
             images, distances, trans, times = load_map(mappaths=f"{str(DOT_ROS_PATH)}/{args.u}")
-            env_obj.map_metadata['maps_names'].append(map_name)
-            # env_obj.map_metadata['images'].append(images)
-            # env_obj.map_metadata['trans'].append(trans)
-            env_obj.map_metadata['times'].append(times)
-            env_obj.map_metadata['distances'].append(distances)
+            if map_name not in env_obj.map_metadata['maps_names']:
+                env_obj.map_metadata['maps_names'].append(map_name)
+                # env_obj.map_metadata['images'].append(images)
+                # env_obj.map_metadata['trans'].append(trans)
+                env_obj.map_metadata['times'].append(times)
+                env_obj.map_metadata['distances'].append(distances)
 
         else:  # else create the env obj
             env_obj = Environment(name=args.e, gps_position=None, nodes=None,
@@ -78,8 +85,7 @@ def main():
         os.remove(f"{str(DOT_ROS_PATH)}/{args.e}.{args.u}.zip")
 
     else:
-        fetch_maps2(args.e, args.m)
-        # fetch_environment(args.e)
+        raise Exception("Please try again, something is missing..")
 
 
 def extract_map_metadata(env_obj, map_name):
@@ -97,11 +103,12 @@ def extract_map_metadata(env_obj, map_name):
     # loading all the maps of the current environment
     images, distances, trans, times = load_map(mappaths=str(map_path))
 
-    env_obj.map_metadata['maps_names'].append(map_name)
-    # env_obj.map_metadata['images'].append(images)
-    # env_obj.map_metadata['trans'].append(trans)
-    env_obj.map_metadata['times'].append(times)
-    env_obj.map_metadata['distances'].append(distances)
+    if map_name not in env_obj.map_metadata['maps_names']:
+        env_obj.map_metadata['maps_names'].append(map_name)
+        # env_obj.map_metadata['images'].append(images)
+        # env_obj.map_metadata['trans'].append(trans)
+        env_obj.map_metadata['times'].append(times)
+        env_obj.map_metadata['distances'].append(distances)
 
 
 def upload_objects2():
@@ -111,15 +118,20 @@ def upload_objects2():
 
     environments = list(os.listdir(maps_path))  # list of all the environments
 
-    for i in range(number_of_environments):  # iterating over each envrionment
-        env_obj = Environment(name=environments[i], gps_position=None, nodes=None,
-                              edges=None)  # env object for the current environment
+    for i in range(number_of_environments):  # iterating over each environment
+
+        # first check if the env already exists in the db
+        if fetch_environment(environments[i]):
+            env_obj = fetch_environment(environments[i])  # if the env exists in db then use it
+        else:
+            env_obj = Environment(name=environments[i], gps_position=None, nodes=None,
+                                  edges=None)  # else env object for the current environment
 
         dirs_in_env_dir = list(os.listdir((maps_path / environments[i])))
         maps = []
-        for dir in dirs_in_env_dir:  # considering only the .zip files
-            if dir.endswith('.zip'):
-                maps.append(dir)
+        for dir_ in dirs_in_env_dir:  # considering only the .zip files
+            if dir_.endswith('.zip'):
+                maps.append(dir_)
 
         number_of_maps = len(maps)
 
@@ -142,6 +154,7 @@ def fetch_maps2(env, map_to_fetch):
     """
     Fetches maps as a zipped file for an environment
     Args:
+        map_to_fetch:
         env: Environment for which maps are to be fetched
     Returns:
         Zipped maps

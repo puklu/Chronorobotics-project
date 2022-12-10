@@ -22,7 +22,7 @@ FETCHED_ENV_OBJ_PATH = f"{ROOT}/fetched_objects/environment"
 ENV_BUCKET = "environment"
 MAP_BUCKET = "maps"
 
-CLIENT = Minio( END_POINT,
-            access_key=ACCESS_KEY,
-            secret_key=SECRET_KEY,
-            secure=False)
+CLIENT = Minio(END_POINT,
+               access_key=ACCESS_KEY,
+               secret_key=SECRET_KEY,
+               secure=False)

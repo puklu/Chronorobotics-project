@@ -22,7 +22,7 @@ def main():
     # when no arguments are provided, buckets are created and all the maps for all the envs are uploaded
     if not args.e and not args.m and not args.u and not args.oe:
         create_buckets()  # create the buckets
-        upload_objects2()  # upload to db
+        # upload_objects2()  # upload to db
 
     # when only -oe is provided, only env object is fetched
     elif args.oe and not args.e and not args.m and not args.u:

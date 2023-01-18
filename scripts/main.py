@@ -43,6 +43,8 @@ def main():
 
     # when -u and -e are provided, map u is uploaded for env e from .ros
     elif args.u and args.e and not args.m and not args.oe:
+        create_buckets()  # create the buckets
+        upload_objects2()  # upload to db
         # zipping the map
         path = f"{DOT_ROS_PATH}/{args.u}"
         # make_archive(f"{DOT_ROS_PATH}/{args.e}.{args.u}", "zip", path)

@@ -171,13 +171,19 @@ def fetch_maps2(env, map_to_fetch):
 
     # deleting all existing fetched items from the fetched_objects directory first
     try:
+        if not FETCHED_MAP_OBJ_PATH.is_dir():  # Creating the directory if it doesnt exist
+            FETCHED_MAP_OBJ_PATH.mkdir(parents=True, exist_ok=True)
+
         all_files = os.listdir(f"{FETCHED_MAP_OBJ_PATH}/{env}/")
         for f in all_files:
             os.remove(f"{FETCHED_MAP_OBJ_PATH}/{f}")
     except:
         pass
 
-        # downloading all info for the environment as a pkl file
+    # downloading all info for the environment as a pkl file
+    if not FETCHED_ENV_OBJ_PATH.is_dir():  # Creating the directory if it doesnt exist
+        FETCHED_ENV_OBJ_PATH.mkdir(parents=True, exist_ok=True)
+
     CLIENT.fget_object(ENV_BUCKET, env, file_path=f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl")
 
     # reading the downloaded env pkl file
@@ -220,16 +226,9 @@ def fetch_environment(env):
         A dict with key = "env name" and value = Environment class objects
     """
     global CLIENT
-    # try:
-    #     response = client.get_object(ENV_BUCKET, env)
-    # finally:
-    #     response.close()
-    #     response.release_conn()  
 
-    # return response.getheaders()  # TODO: HOW TO READ THE DATA RETURNED BY get_object ???
-
-    # TODO: The block needs to be replaced by the block above
-    # Workaround until get_object starts working
+    if not FETCHED_ENV_OBJ_PATH.is_dir():  # Creating the directory if it doesnt exist
+        FETCHED_ENV_OBJ_PATH.mkdir(parents=True, exist_ok=True)
 
     # deleting all existing fetched items from the directory first
     all_files = os.listdir(f"{FETCHED_ENV_OBJ_PATH}/")

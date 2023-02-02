@@ -10,12 +10,13 @@ services:
       - MINIO_ROOT_USER= ${ACCESS_KEY}
       - MINIO_ROOT_PASSWORD= ${SECRET_KEY}
     volumes:
-      - ~/minio/data:/data 
+      - ~/map_storage/data:/data 
     command:
        server /data --console-address ":9090" 
   
-volumes:
-  minio:
-    driver: local         
+#volumes:
+    #~/map_storage/data:
+  #minio:
+    #driver: local         
       
       

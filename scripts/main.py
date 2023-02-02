@@ -154,12 +154,12 @@ def upload_objects2():
 
 def fetch_maps2(env, map_to_fetch):
     """
-    Fetches maps as a zipped file for an environment
+    Fetches maps into ~.ros/  for an environment
     Args:
-        map_to_fetch:
+        map_to_fetch: name of the map to be fetched
         env: Environment for which maps are to be fetched
     Returns:
-        Zipped maps
+        map(s) to ~.ros/
     """
     global CLIENT
 
@@ -190,7 +190,7 @@ def fetch_maps2(env, map_to_fetch):
     with open(f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl", 'rb') as f:
         map_data = pickle.load(f)
 
-        # extracting map_metadata for the env i.e names of all the maps for the env
+    # extracting map_metadata for the env i.e names of all the maps for the env
     maps_metadata_for_env = map_data.map_metadata
 
     # all the maps for the env fetched if map name not provided
@@ -201,8 +201,8 @@ def fetch_maps2(env, map_to_fetch):
                                file_path=f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_}.zip")
             # unzipping into ~.ros
             with ZipFile(f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_}.zip", 'r') as zObject:
-                zObject.extractall(path=f"{FETCHED_MAPS_PATH}/{env}")
-                print(f"{map_} fetched to {FETCHED_MAPS_PATH}/{env}")
+                zObject.extractall(path=f"{FETCHED_MAPS_PATH}")
+                print(f"{map_} fetched to {FETCHED_MAPS_PATH}")
 
     # only the map with the map name provided fetched for the env
     else:
@@ -211,8 +211,8 @@ def fetch_maps2(env, map_to_fetch):
                                file_path=f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_to_fetch}.zip")
             # unzipping into ~.ros
             with ZipFile(f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_to_fetch}.zip", 'r') as zObject:
-                zObject.extractall(path=f"{FETCHED_MAPS_PATH}/{env}")
-                print(f"{map_to_fetch} fetched to {FETCHED_MAPS_PATH}/{env}")
+                zObject.extractall(path=f"{FETCHED_MAPS_PATH}")
+                print(f"{map_to_fetch} fetched to {FETCHED_MAPS_PATH}")
         except:
             raise Exception(f"{map_to_fetch} doesn't exist in the db for {env}")
 

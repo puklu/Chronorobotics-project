@@ -8,7 +8,24 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
                  
 1. cd into ```project/scripts/```.
 
-2. To upload all the recorded maps so far for all the environments in one go, then if the pre-requisites are met,
+
+2. To upload a particular map for an environment from `~/.ros`,
+            
+            python main.py -e <environment-to-which-map-belongs> -u <map-to-upload> 
+            
+3. To fetch a particular map for an environment,
+           
+            python main.py -e <environment-name> -m <map-name>            
+
+4. To fetch all the maps for an environment for the db,
+            
+            python main.py -e <environment-name>
+            
+5. To fetch only environment details (for eg map metadata),
+            
+            python main.py -oe <environment-name> 
+            
+6. To upload all the recorded maps for all the environments in one go,
 
         Pre-requisites:
             If you want to upload all the recorded maps so far, then maps  for each environment should be compressed and present in the directory ```objects/maps/``` , with map being separated into different directories based on the environment.
@@ -19,24 +36,7 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
  
           
         Run:    
-        python main.py
-
-3. To upload a particular map for an environment from `~/.ros`,
-            
-            python main.py -e <environment-to-which-map-belongs> -u <map-to-upload> 
-
-4. To fetch all the maps for an environment for the db,
-            
-            python main.py -e <environment-name>
-            
-5. To fetch a particular map for an environment,
-           
-            python main.py -e <environment-name> -m <map-name>
-
-6. To fetch only environment details (for eg map metadata),
-            
-            python main.py -oe <environment-name> 
-            
+        python main.py            
                        
 
 Note: The fetched maps from db are stored in `~/.ros`

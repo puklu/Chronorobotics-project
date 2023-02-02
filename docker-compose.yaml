@@ -14,9 +14,4 @@ services:
     command:
        server /data --console-address ":9090" 
   
-#volumes:
-    #~/map_storage/data:
-  #minio:
-    #driver: local         
-      
-      
+

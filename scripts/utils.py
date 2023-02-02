@@ -93,10 +93,15 @@ def env_upload(env_data):
         A object instance of class Environment   
     """
     global CLIENT
+
+    if not TO_UPLOAD_PATH.is_dir():  # Creating the directory if it doesnt exist
+        TO_UPLOAD_PATH.mkdir(parents=True, exist_ok=True)
+
     obj_name = env_data.name
 
     env_data.pickle_env()
-    # env object is always updated in db even if it already exixsts
+
+    # env object is always updated in db even if it already exists
     CLIENT.fput_object(bucket_name=ENV_BUCKET, object_name=obj_name,
                        file_path=str(TO_UPLOAD_PATH) + "/" + 'pickled_env.pkl')
     print(f"Environment {obj_name} uploaded to {ENV_BUCKET} bucket")

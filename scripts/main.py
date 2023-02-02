@@ -2,6 +2,7 @@ from copyreg import pickle
 import pickle
 import os
 import argparse
+from pathlib import Path
 from zipfile import ZipFile
 
 from utils import load_map, create_buckets, env_upload, map_upload, map_upload2
@@ -22,7 +23,7 @@ def main():
     # when no arguments are provided, buckets are created and all the maps for all the envs are uploaded
     if not args.e and not args.m and not args.u and not args.oe:
         create_buckets()  # create the buckets
-        # upload_objects2()  # upload to db
+        upload_objects2()  # upload to db
 
     # when only -oe is provided, only env object is fetched
     elif args.oe and not args.e and not args.m and not args.u:
@@ -45,9 +46,14 @@ def main():
     elif args.u and args.e and not args.m and not args.oe:
         create_buckets()  # create the buckets
 
+        path = Path(f"{DOT_ROS_PATH}/{args.u}")
+
+        if not path.is_dir():
+            print(f"The map {args.u} doesn't exist in local")
+            return
+
         # zipping the map
-        path = f"{DOT_ROS_PATH}/{args.u}"
-        # make_archive(f"{DOT_ROS_PATH}/{args.e}.{args.u}", "zip", path)
+
         with ZipFile(f"{DOT_ROS_PATH}/{args.e}.{args.u}.zip", 'w') as zip:
             for path, directories, files in os.walk(path):
                 for file in files:
@@ -116,7 +122,14 @@ def extract_map_metadata(env_obj, map_name):
 def upload_objects2():
     maps_path = OBJECTS_PATH / "maps"
 
+    if not maps_path.is_dir():
+        maps_path.mkdir(parents=True, exist_ok=True)
+
     number_of_environments = len(list(os.listdir(maps_path)))  # count of all the environments
+
+    if number_of_environments == 0:
+        print(f"There are no maps in {maps_path} directory in the project. NOT UPLOADING ANYTHING! Please place the zipped maps here.")
+        return
 
     environments = list(os.listdir(maps_path))  # list of all the environments
 
@@ -184,7 +197,11 @@ def fetch_maps2(env, map_to_fetch):
     if not FETCHED_ENV_OBJ_PATH.is_dir():  # Creating the directory if it doesnt exist
         FETCHED_ENV_OBJ_PATH.mkdir(parents=True, exist_ok=True)
 
-    CLIENT.fget_object(ENV_BUCKET, env, file_path=f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl")
+    try:
+        CLIENT.fget_object(ENV_BUCKET, env, file_path=f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl")
+    except:
+        print("Environment doesnt exist in db")
+        return
 
     # reading the downloaded env pkl file
     with open(f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl", 'rb') as f:
@@ -197,12 +214,15 @@ def fetch_maps2(env, map_to_fetch):
     if not map_to_fetch:
         # getting all the maps from maps bucket for the env
         for map_ in maps_metadata_for_env['maps_names']:
-            CLIENT.fget_object(MAP_BUCKET, f"{env}.{map_}.zip",
-                               file_path=f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_}.zip")
-            # unzipping into ~.ros
-            with ZipFile(f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_}.zip", 'r') as zObject:
-                zObject.extractall(path=f"{FETCHED_MAPS_PATH}")
-                print(f"{map_} fetched to {FETCHED_MAPS_PATH}")
+            try:
+                CLIENT.fget_object(MAP_BUCKET, f"{env}.{map_}.zip",
+                                   file_path=f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_}.zip")
+                # unzipping into ~.ros
+                with ZipFile(f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_}.zip", 'r') as zObject:
+                    zObject.extractall(path=f"{FETCHED_MAPS_PATH}")
+                    print(f"{map_} fetched to {FETCHED_MAPS_PATH}")
+            except:
+                print(f"{map_} doesn't exist in the db for {env}")
 
     # only the map with the map name provided fetched for the env
     else:
@@ -214,7 +234,7 @@ def fetch_maps2(env, map_to_fetch):
                 zObject.extractall(path=f"{FETCHED_MAPS_PATH}")
                 print(f"{map_to_fetch} fetched to {FETCHED_MAPS_PATH}")
         except:
-            raise Exception(f"{map_to_fetch} doesn't exist in the db for {env}")
+            print(f"{map_to_fetch} doesn't exist in the db for {env}")
 
 
 def fetch_environment(env):

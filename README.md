@@ -1,6 +1,6 @@
 # How to use the tool
 
-The tool compresses the maps directory and upload them to map_bucket. The corresponding metadata for the maps for an environment is uploaded to env_bucket in the db.
+The tool uploads maps from `~/.ros` to map_bucket. The corresponding metadata for the maps for an environment is uploaded to env_bucket in the db.
 
 The tool can also be used to fetch maps from the db. Fetches the zipped map files from the db and then extracts them to `~/.ros` directory.
 
@@ -11,10 +11,10 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
 2. To upload all the recorded maps so far for all the environments in one go, then if the pre-requisites are met,
 
         Pre-requisites:
-            If you want to upload all the recorded maps so far, then maps for each environment should be present in the directory ```objects\maps\``` , with map being separated into different directories based on the environment.
+            If you want to upload all the recorded maps so far, then maps  for each environment should be compressed and present in the directory ```objects/maps/``` , with map being separated into different directories based on the environment.
                     
-            For example: all the maps for environment 'env0' should be in the directory ```objects\maps\env0\```
-                            all the maps for environment 'env1' should be in the directory ```objects\maps\env1\```
+            For example: all the maps for environment 'env0' should be in the directory ```objects/maps/env0/```
+                            all the maps for environment 'env1' should be in the directory ```objects/maps/env1/```
                             and so on...
  
           

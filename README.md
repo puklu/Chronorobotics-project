@@ -1,6 +1,6 @@
 # How to use the tool
 
-The tool uploads maps from `~/.ros` to map_bucket. The corresponding metadata for the maps for an environment is uploaded to env_bucket in the db.
+The tool uploads maps to map_bucket. The corresponding metadata for the maps for an environment is uploaded to env_bucket in the db.
 
 The tool can also be used to fetch maps from the db. Fetches the zipped map files from the db and then extracts them to `~/.ros` directory.
 

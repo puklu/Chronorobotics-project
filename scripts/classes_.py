@@ -4,16 +4,20 @@ from constants import ROOT, OBJECTS_PATH, DOWNLOADED_ENVS_PATH, DOWNLOADED_MAPS_
 
 
 class Environment:
-    def __init__(self, name, gps_position, nodes, edges) -> None:
+    def __init__(self, name, gps_position) -> None:
         self.name = name
         self.gps_position = gps_position
-        self.nodes = nodes
-        self.edges = edges
+        self.nodes = []
+        self.edges = []
         self.map_metadata = {'maps_names': [],
                              'images': [],
                              'trans': [],
                              'times': [],
-                             'distances': []}
+                             'distances': [],
+                             'distance': [],
+                             'start_node': [],
+                             'end_node': []
+                             }
 
     def pickle_env(self):
         with open(str(TO_UPLOAD_PATH) + "/" + "pickled_env.pkl", 'wb') as f:
@@ -55,3 +59,5 @@ class Features:
     def __init__(self) -> None:
         self.shape = None
         self.values = None
+
+

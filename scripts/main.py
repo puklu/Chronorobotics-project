@@ -5,7 +5,8 @@ import argparse
 from pathlib import Path
 from zipfile import ZipFile
 
-from utils import load_map, create_buckets, env_upload, map_upload, map_upload2
+from utils import *
+# from utils import load_map, create_buckets, env_upload, map_upload, map_upload2, delete_a_map, delete_all_maps_of_an_environment,
 from constants import ROOT, OBJECTS_PATH, CLIENT, ENV_BUCKET, MAP_BUCKET, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, \
     FETCHED_MAPS_PATH, DOT_ROS_PATH
 from classes_ import Map, Environment
@@ -17,33 +18,52 @@ def main():
     parser.add_argument('-m', help="Name of the map that needs to be fetched")
     parser.add_argument('-oe', help="Name of the environment for which only env needs to be fetched")
     parser.add_argument('-u', help="Name of the map to upload")
+    parser.add_argument('-snode', help="Name of the start node")
+    parser.add_argument('-enode', help="Name of the end node")
+    parser.add_argument('-delamap', help="Name of the map to be deleted from a environment")
+    parser.add_argument('-delmaps', help="Name of the env from which all maps are to be deleted")
 
     args = parser.parse_args()
 
     # when no arguments are provided, buckets are created and all the maps for all the envs are uploaded
-    if not args.e and not args.m and not args.u and not args.oe:
+    if not args.e and not args.m and not args.u and not args.oe and not args.snode and not args.enode and not args.delamap and not args.delmaps:
         create_buckets()  # create the buckets
-        upload_objects2()  # upload to db
+        # upload_objects2()  # upload to db
+
+    # delete all maps from an environment
+    elif args.delmaps and not args.e and not args.m and not args.u and not args.oe and not args.snode and not args.enode and not args.delamap:
+        delete_all_maps_of_an_environment(args.delmaps)
+
+    # deleting a map
+    elif args.delamap and args.e and not args.m and not args.u and not args.oe and not args.snode and not args.enode and not args.delmaps:
+        map_name = args.delamap
+        env_name = args.e
+        delete_a_map(env_name, map_name)
 
     # when only -oe is provided, only env object is fetched
-    elif args.oe and not args.e and not args.m and not args.u:
+    elif args.oe and not args.e and not args.m and not args.u and not args.snode and not args.enode and not args.delamap and not args.delmaps:
         env_obj = fetch_environment(args.oe)
         if env_obj:
             env_map_metadata = env_obj.map_metadata
-            print(env_map_metadata['maps_names'])
+            print(f"env name: {env_obj.name}")
+            print(f"nodes in the env: {env_obj.nodes}")
+            print(f"maps in the env: {env_map_metadata['maps_names']}")
+            print(f"distance: {env_map_metadata['distance']}")
+            print(f"start nodes: {env_map_metadata['start_node']}")
+            print(f"end nodes: {env_map_metadata['end_node']}")
         else:
             print(f"{args.oe} doesn't exist in db")
 
     # when only -e is provided, all the maps for that particular environment are fetched
-    elif args.e and not args.m and not args.u and not args.oe:
+    elif args.e and not args.m and not args.u and not args.oe and not args.snode and not args.enode and not args.delamap and not args.delmaps:
         fetch_maps2(args.e, args.m)
 
     # when -e and -m are provided, that particular map is fetched for that environment
-    elif args.e and args.m and not args.u and not args.oe:
+    elif args.e and args.m and not args.u and not args.oe and not args.snode and not args.enode and not args.delamap and not args.delmaps:
         fetch_maps2(args.e, args.m)
 
     # when -u and -e are provided, map u is uploaded for env e from .ros
-    elif args.u and args.e and not args.m and not args.oe:
+    elif args.u and args.e and args.snode and args.enode and not args.m and not args.oe and not args.delamap and not args.delmaps:
         create_buckets()  # create the buckets
 
         path = Path(f"{DOT_ROS_PATH}/{args.u}")
@@ -58,32 +78,26 @@ def main():
             for path, directories, files in os.walk(path):
                 for file in files:
                     file_name = os.path.join(path, file)
-                    zip.write(file_name, arcname=f"{args.u}/{os.path.basename(file_name)}") # zipping the file
+                    zip.write(file_name, arcname=f"{args.u}/{os.path.basename(file_name)}")  # zipping the file
 
         map_obj_name = f"{args.e}.{args.u}.zip"  # name to be used for the map object
         map_name = f"{args.u}"
+        start_node = args.snode
+        end_node = args.enode
 
         # Fetch env obj from db, append to it, then replace the one in db
         env_obj = fetch_environment(args.e)
         if env_obj:  # if the env exists in db then update it
-            images, distances, trans, times = load_map(mappaths=f"{str(DOT_ROS_PATH)}/{args.u}")
+            env_obj = extract_map_metadata2(env_obj=env_obj, map_name=map_name, start_node=start_node,
+                                            end_node=end_node)
             if map_name not in env_obj.map_metadata['maps_names']:
-                env_obj.map_metadata['maps_names'].append(map_name)
-                # env_obj.map_metadata['images'].append(images)
-                # env_obj.map_metadata['trans'].append(trans)
-                env_obj.map_metadata['times'].append(times)
-                env_obj.map_metadata['distances'].append(distances)
+                env_obj = extract_map_metadata2(env_obj=env_obj, map_name=map_name, start_node=start_node,
+                                                end_node=end_node)
 
         else:  # else create the env obj
-            env_obj = Environment(name=args.e, gps_position=None, nodes=None,
-                                  edges=None)  # env object for the current environment
-            images, distances, trans, times = load_map(mappaths=f"{str(DOT_ROS_PATH)}/{args.u}")
-
-            env_obj.map_metadata['maps_names'].append(map_name)
-            # env_obj.map_metadata['images'].append(images)
-            # env_obj.map_metadata['trans'].append(trans)
-            env_obj.map_metadata['times'].append(times)
-            env_obj.map_metadata['distances'].append(distances)
+            env_obj = Environment(name=args.e, gps_position=None)  # env object for the current environment
+            env_obj = extract_map_metadata2(env_obj=env_obj, map_name=map_name, start_node=start_node,
+                                            end_node=end_node)
 
         map_path = f"{str(DOT_ROS_PATH)}/{args.e}.{args.u}.zip"
         map_upload2(env_name=args.e, obj_name=map_obj_name, map_name=map_name, path=map_path)
@@ -94,177 +108,6 @@ def main():
 
     else:
         raise Exception("Please try again, something is missing..")
-
-
-def extract_map_metadata(env_obj, map_name):
-    """
-    Adds the map_metadata for a given environment for the given map
-    """
-    maps_path = OBJECTS_PATH / "maps"
-    env_name = env_obj.name
-
-    with ZipFile(f"{ROOT}/objects/maps/{env_name}/{map_name}.zip", 'r') as zObject:
-        zObject.extractall(path=f"{ROOT}/objects/maps/{env_name}/{map_name}")
-
-    map_path = maps_path / env_name / map_name / map_name
-
-    # loading all the maps of the current environment
-    images, distances, trans, times = load_map(mappaths=str(map_path))
-
-    if map_name not in env_obj.map_metadata['maps_names']:
-        env_obj.map_metadata['maps_names'].append(map_name)
-        # env_obj.map_metadata['images'].append(images)
-        # env_obj.map_metadata['trans'].append(trans)
-        env_obj.map_metadata['times'].append(times)
-        env_obj.map_metadata['distances'].append(distances)
-
-
-def upload_objects2():
-    maps_path = OBJECTS_PATH / "maps"
-
-    if not maps_path.is_dir():
-        maps_path.mkdir(parents=True, exist_ok=True)
-
-    number_of_environments = len(list(os.listdir(maps_path)))  # count of all the environments
-
-    if number_of_environments == 0:
-        print(f"There are no maps in {maps_path} directory in the project. NOT UPLOADING ANYTHING! Please place the zipped maps here.")
-        return
-
-    environments = list(os.listdir(maps_path))  # list of all the environments
-
-    for i in range(number_of_environments):  # iterating over each environment
-
-        # first check if the env already exists in the db
-        if fetch_environment(environments[i]):
-            env_obj = fetch_environment(environments[i])  # if the env exists in db then use it
-        else:
-            env_obj = Environment(name=environments[i], gps_position=None, nodes=None,
-                                  edges=None)  # else env object for the current environment
-
-        dirs_in_env_dir = list(os.listdir((maps_path / environments[i])))
-        maps = []
-        for dir_ in dirs_in_env_dir:  # considering only the .zip files
-            if dir_.endswith('.zip'):
-                maps.append(dir_)
-
-        number_of_maps = len(maps)
-
-        for j in range(number_of_maps):
-            map_name = maps[j]
-
-            map_obj_name = f"{environments[i]}.{maps[j]}"  # name to be used for the map object
-
-            # adding all the map_metadata for the env
-            extract_map_metadata(env_obj, map_name[:-4])
-
-            # upload the map file
-            map_path = f"{str(OBJECTS_PATH)}/maps/{environments[i]}/{map_name}"
-            map_upload2(env_name=environments[i], obj_name=map_obj_name, map_name=map_name, path=map_path)
-
-        env_upload(env_data=env_obj)
-
-
-def fetch_maps2(env, map_to_fetch):
-    """
-    Fetches maps into ~.ros/  for an environment
-    Args:
-        map_to_fetch: name of the map to be fetched
-        env: Environment for which maps are to be fetched
-    Returns:
-        map(s) to ~.ros/
-    """
-    global CLIENT
-
-    # check if the map exists on local
-    local_path = f"{FETCHED_MAPS_PATH}/{env}/{map_to_fetch}"
-    if os.path.isdir(local_path):
-        print(f"{map_to_fetch} for {env} exists on local, fetching from db skipped....")
-        return
-
-    # deleting all existing fetched items from the fetched_objects directory first
-    try:
-        if not FETCHED_MAP_OBJ_PATH.is_dir():  # Creating the directory if it doesnt exist
-            FETCHED_MAP_OBJ_PATH.mkdir(parents=True, exist_ok=True)
-
-        all_files = os.listdir(f"{FETCHED_MAP_OBJ_PATH}/{env}/")
-        for f in all_files:
-            os.remove(f"{FETCHED_MAP_OBJ_PATH}/{f}")
-    except:
-        pass
-
-    # downloading all info for the environment as a pkl file
-    if not FETCHED_ENV_OBJ_PATH.is_dir():  # Creating the directory if it doesnt exist
-        FETCHED_ENV_OBJ_PATH.mkdir(parents=True, exist_ok=True)
-
-    try:
-        CLIENT.fget_object(ENV_BUCKET, env, file_path=f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl")
-    except:
-        print("Environment doesnt exist in db")
-        return
-
-    # reading the downloaded env pkl file
-    with open(f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl", 'rb') as f:
-        map_data = pickle.load(f)
-
-    # extracting map_metadata for the env i.e names of all the maps for the env
-    maps_metadata_for_env = map_data.map_metadata
-
-    # all the maps for the env fetched if map name not provided
-    if not map_to_fetch:
-        # getting all the maps from maps bucket for the env
-        for map_ in maps_metadata_for_env['maps_names']:
-            try:
-                CLIENT.fget_object(MAP_BUCKET, f"{env}.{map_}.zip",
-                                   file_path=f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_}.zip")
-                # unzipping into ~.ros
-                with ZipFile(f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_}.zip", 'r') as zObject:
-                    zObject.extractall(path=f"{FETCHED_MAPS_PATH}")
-                    print(f"{map_} fetched to {FETCHED_MAPS_PATH}")
-            except:
-                print(f"{map_} doesn't exist in the db for {env}")
-
-    # only the map with the map name provided fetched for the env
-    else:
-        try:
-            CLIENT.fget_object(MAP_BUCKET, f"{env}.{map_to_fetch}.zip",
-                               file_path=f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_to_fetch}.zip")
-            # unzipping into ~.ros
-            with ZipFile(f"{FETCHED_MAP_OBJ_PATH}/{env}/{env}.{map_to_fetch}.zip", 'r') as zObject:
-                zObject.extractall(path=f"{FETCHED_MAPS_PATH}")
-                print(f"{map_to_fetch} fetched to {FETCHED_MAPS_PATH}")
-        except:
-            print(f"{map_to_fetch} doesn't exist in the db for {env}")
-
-
-def fetch_environment(env):
-    """
-    Fetches environment details
-    Args:
-        env: Environment which is to be fetched
-    Returns:
-        A dict with key = "env name" and value = Environment class objects
-    """
-    global CLIENT
-
-    if not FETCHED_ENV_OBJ_PATH.is_dir():  # Creating the directory if it doesnt exist
-        FETCHED_ENV_OBJ_PATH.mkdir(parents=True, exist_ok=True)
-
-    # deleting all existing fetched items from the directory first
-    all_files = os.listdir(f"{FETCHED_ENV_OBJ_PATH}/")
-    for f in all_files:
-        os.remove(f"{FETCHED_ENV_OBJ_PATH}/{f}")
-
-    # downloading all info for the environment as a pkl file
-    try:
-        CLIENT.fget_object(ENV_BUCKET, env, file_path=f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl")
-        # reading the downloaded env pkl file
-        with open(f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl", 'rb') as f:
-            env_data = pickle.load(f)
-        return env_data
-
-    except:
-        return
 
 
 main()

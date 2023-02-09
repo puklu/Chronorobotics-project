@@ -11,7 +11,7 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
 
 2. To upload a particular map for an environment from `~/.ros`,
             
-            python main.py -e <environment-to-which-map-belongs> -u <map-to-upload> 
+            python main.py -e <environment-to-which-map-belongs> -u <map-to-upload> -snode <starting-node> -enode <ending-node>
             
 3. To fetch a particular map for an environment,
            
@@ -25,7 +25,15 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
             
             python main.py -oe <environment-name> 
             
-6. To upload all the recorded maps for all the environments in one go,
+6. To delete a specific map from an environment,
+            
+            python main.py -e <environment-name> -delamap <name-of-the-map>
+
+7. To delete all the maps for a particular environment,
+
+            python main.py -delmaps <name-of-the-environment>
+            
+8. To upload all the recorded maps for all the environments in one go,
 
         Pre-requisites:
             If you want to upload all the recorded maps so far, then maps  for each environment should be compressed and present in the directory ```objects/maps/``` , with map being separated into different directories based on the environment.
@@ -36,7 +44,7 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
  
           
         Run:    
-        python main.py            
+        python main.py        
                        
 
 Note: The fetched maps from db are stored in `~/.ros`

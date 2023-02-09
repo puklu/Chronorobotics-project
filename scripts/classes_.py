@@ -8,6 +8,7 @@ class Environment:
         self.name = name
         self.gps_position = gps_position
         self.nodes = []
+        self.nodes_names = []
         self.edges = []
         self.map_metadata = {'maps_names': [],
                              'images': [],
@@ -60,4 +61,13 @@ class Features:
         self.shape = None
         self.values = None
 
+class Node:
+    def __init__(self, key):
+        self.key = key
+        self.weight = None
+        self.neighbours = {}
+
+class Graph:
+    def __init__(self):
+        pass
 

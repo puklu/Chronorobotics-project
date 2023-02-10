@@ -62,12 +62,14 @@ class Features:
         self.values = None
 
 class Node:
+    """
+    A class for creating the nodes of the graph
+    """
     def __init__(self, key):
         self.key = key
         self.weight = None
-        self.neighbours = {}
+        self.via = None
+        self.isVisited = False
+        self.neighbours = []
 
-class Graph:
-    def __init__(self):
-        pass
 

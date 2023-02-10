@@ -25,15 +25,20 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
             
             python main.py -oe <environment-name> 
             
-6. To delete a specific map from an environment,
+6. To find the shortest path between two nodes,
+            
+            python main.py -e <environment-name> -shortest <first-node> <second-node>
+            
+7. To delete a specific map from an environment,
             
             python main.py -e <environment-name> -delamap <name-of-the-map>
 
-7. To delete all the maps for a particular environment,
+8. To delete all the maps for a particular environment,
 
             python main.py -delmaps <name-of-the-environment>
+                        
             
-8. To upload all the recorded maps for all the environments in one go,
+9. To upload all the recorded maps for all the environments in one go,
 
         Pre-requisites:
             If you want to upload all the recorded maps so far, then maps  for each environment should be compressed and present in the directory ```objects/maps/``` , with map being separated into different directories based on the environment.
@@ -48,3 +53,10 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
                        
 
 Note: The fetched maps from db are stored in `~/.ros`
+
+
+( While uploading maps, in case the user wants to manually manipulate the distance between the nodes for testing,
+
+    python main.py -e <environment-to-which-map-belongs> -u <map-to-upload> -snode <starting-node> -enode <ending-node> -mani <manipulated-distance>
+            
+)

@@ -1,8 +1,13 @@
+"""
+This is to manually manipulate the data in db.
+Can come in handy for testing
+"""
+
 from utils import *
 from classes_ import Node
 
 
-def extract_map_metadata2(env_obj, map_name, start_node_name, end_node_name):
+def extract_map_metadata_manipulated(env_obj, map_name, start_node_name, end_node_name, distance):
     """
     Extracts the meta_data of an environment when a map is uploaded for an environment.
     Also updates the necessary env variables.
@@ -11,13 +16,14 @@ def extract_map_metadata2(env_obj, map_name, start_node_name, end_node_name):
         map_name: Name of the map being uploaded
         start_node_name: Name of the starting node of the map
         end_node_name: Name of the ending node of the map
+        distance: MANIPULATED DISTANCE
 
     Returns: An updated env object
 
     """
     images, distances, trans, times = load_map(mappaths=f"{str(DOT_ROS_PATH)}/{map_name}")
 
-    distance = distances[0][-1]
+    # distance = distances[0][-1]
 
     env_obj.map_metadata['maps_names'].append(map_name)
     # env_obj.map_metadata['images'].append(images)
@@ -41,30 +47,6 @@ def extract_map_metadata2(env_obj, map_name, start_node_name, end_node_name):
         env_obj.nodes.append(end_node)
 
     return env_obj
-
-
-def extract_map_metadata(env_obj, map_name):
-    """
-    Adds the map_metadata for a given environment for the given map. Works only when all the maps are uploaded at once.
-    PROBABLY OBSOLETE NOW.
-    """
-    maps_path = OBJECTS_PATH / "maps"
-    env_name = env_obj.name
-
-    with ZipFile(f"{ROOT}/objects/maps/{env_name}/{map_name}.zip", 'r') as zObject:
-        zObject.extractall(path=f"{ROOT}/objects/maps/{env_name}/{map_name}")
-
-    map_path = maps_path / env_name / map_name / map_name
-
-    # loading all the maps of the current environment
-    images, distances, trans, times = load_map(mappaths=str(map_path))
-
-    if map_name not in env_obj.map_metadata['maps_names']:
-        env_obj.map_metadata['maps_names'].append(map_name)
-        # env_obj.map_metadata['images'].append(images)
-        # env_obj.map_metadata['trans'].append(trans)
-        env_obj.map_metadata['times'].append(times)
-        env_obj.map_metadata['distances'].append(distances)
 
 
 def create_nodes(env_obj, start_node_name, end_node_name, distance):

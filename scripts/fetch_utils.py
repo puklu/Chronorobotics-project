@@ -4,32 +4,36 @@ from copyreg import pickle
 import pickle
 
 
-def print_env_details(env_obj, meta_data_dict):
+def print_env_details(env_name):
     """
     Prints the contents of env class (for easy testing)
     Args:
-        env_obj: env_obj for which details need to be printed
-        meta_data_dict: metadata dictionary containing the metadata for maps in the environment
-    """
+        env_name: name of the environment for which details need to be printed
+     """
+    env_obj = fetch_environment(env_name)  # fetching the env object
+    meta_data_dict = fetch_map_metadata(env_obj)  # getting map metadata from it
+
     if meta_data_dict:
         print(f"env name: {env_obj.name}")
         print(f"nodes in the env: {env_obj.nodes}")
         print(f"maps in the env: {meta_data_dict['maps_names']}")
         print(f"distance: {meta_data_dict['distance']}")
-        print(f"START NODES")
-        for snode in meta_data_dict['start_node']:
-            print(snode.key)
 
-        print()
-        print(f"END NODES")
-        for enode in meta_data_dict['end_node']:
-            print(enode.key)
+        # print(f"START NODES")
+        # for snode in meta_data_dict['start_node']:
+        #     print(snode.key)
+        #
+        # print()
+        # print(f"END NODES")
+        # for enode in meta_data_dict['end_node']:
+        #     print(enode.key)
 
         print(f"Neighbours of NODES are:")
         for node in env_obj.nodes:
-            print(f"Neighbours of {node.key} are:", end=' ')
+            print(f"Weight of the node is: {node.weight}")
+            print(f"Neighbours of {node.key} with distance are:", end=' ')
             for neighbour in node.neighbours:
-                print(neighbour.key, end=' ')
+                print(f"{neighbour[0].key}: {neighbour[1]}", end=' | ')
             print()
     else:
         print(f"metadata doesn't exist")

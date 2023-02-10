@@ -1,8 +1,11 @@
-from utils import *
+from zipfile import ZipFile
+
 from classes_ import Node
+from constants import ROOT, OBJECTS_PATH, DOT_ROS_PATH
+from load_map import load_map
 
 
-def extract_map_metadata2(env_obj, map_name, start_node_name, end_node_name):
+def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path=None):
     """
     Extracts the meta_data of an environment when a map is uploaded for an environment.
     Also updates the necessary env variables.
@@ -15,7 +18,10 @@ def extract_map_metadata2(env_obj, map_name, start_node_name, end_node_name):
     Returns: An updated env object
 
     """
-    images, distances, trans, times = load_map(mappaths=f"{str(DOT_ROS_PATH)}/{map_name}")
+    if path is None:
+        images, distances, trans, times = load_map(mappaths=f"{str(DOT_ROS_PATH)}/{map_name}")
+    else:
+        images, distances, trans, times = load_map(mappaths=f"{path}/{env_obj.name}/{map_name}")
 
     distance = distances[0][-1]
 
@@ -43,7 +49,7 @@ def extract_map_metadata2(env_obj, map_name, start_node_name, end_node_name):
     return env_obj
 
 
-def extract_map_metadata(env_obj, map_name):
+def OBSOLETE_extract_map_metadata(env_obj, map_name):
     """
     Adds the map_metadata for a given environment for the given map. Works only when all the maps are uploaded at once.
     PROBABLY OBSOLETE NOW.
@@ -100,3 +106,5 @@ def create_nodes(env_obj, start_node_name, end_node_name, distance):
     end_node.neighbours.append((start_node, distance))
 
     return start_node, end_node
+
+

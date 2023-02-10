@@ -1,6 +1,6 @@
 from copyreg import pickle
 import pickle
-from constants import ROOT, OBJECTS_PATH, DOWNLOADED_ENVS_PATH, DOWNLOADED_MAPS_PATH, TO_UPLOAD_PATH
+from constants import TO_UPLOAD_PATH
 
 
 class Environment:
@@ -55,11 +55,6 @@ class Map:
         pickled_object = pickle.dumps(self)
         return pickled_object
 
-
-class Features:
-    def __init__(self) -> None:
-        self.shape = None
-        self.values = None
 
 class Node:
     """

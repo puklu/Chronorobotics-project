@@ -1,5 +1,6 @@
-from utils import *
-from fetch_utils import *
+from constants import CLIENT, MAP_BUCKET, ENV_BUCKET
+from upload_utils import env_upload
+from fetch_utils import fetch_environment
 
 
 def delete_a_map(env_name, map_name):
@@ -11,13 +12,14 @@ def delete_a_map(env_name, map_name):
     """
     map_obj_name = f"{env_name}.{map_name}.zip"
 
-    CLIENT.remove_object(MAP_BUCKET, map_obj_name)  # map deleted
-
     env_obj = fetch_environment(env_name)  # fetching the env details
 
     if env_obj:
         maps_in_env = env_obj.map_metadata['maps_names']  # maps list in env before updating (map deleted at this point)
         if map_name in maps_in_env:
+
+            CLIENT.remove_object(MAP_BUCKET, map_obj_name)  # MAP DELETED
+
             idx = maps_in_env.index(map_name)  # index of the deleted map in map_metadata
 
             # deleting all the data at the index corresponding to the deleted map
@@ -57,6 +59,9 @@ def delete_all_maps_of_an_environment(env_name):
 
     """
     env_obj = fetch_environment(env_name)  # fetching the env details
+
+    print("++++++++++")
+    print(env_obj)
 
     if env_obj:
         list_of_maps_in_the_env = env_obj.map_metadata['maps_names']

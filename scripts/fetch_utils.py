@@ -1,7 +1,9 @@
-from constants import *
+import os
+from constants import FETCHED_MAPS_PATH, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, ENV_BUCKET, MAP_BUCKET,CLIENT
 from zipfile import ZipFile
 from copyreg import pickle
 import pickle
+
 
 
 def print_env_details(env_name):
@@ -30,7 +32,7 @@ def print_env_details(env_name):
 
         print(f"Neighbours of NODES are:")
         for node in env_obj.nodes:
-            print(f"Weight of the node is: {node.weight}")
+            # print(f"Weight of the node is: {node.weight}")
             print(f"Neighbours of {node.key} with distance are:", end=' ')
             for neighbour in node.neighbours:
                 print(f"{neighbour[0].key}: {neighbour[1]}", end=' | ')
@@ -50,14 +52,12 @@ def fetch_map_metadata(env_obj):
     """
     if env_obj:
         env_map_metadata = env_obj.map_metadata
-        print(f"env name: {env_obj.name}")
-        print(f"nodes in the env: {env_obj.nodes}")
         return env_map_metadata
     else:
         return None
 
 
-def fetch_maps2(env, map_to_fetch):
+def fetch_maps(env, map_to_fetch):
     """
     Fetches maps into ~.ros/  for an environment
     Args:
@@ -66,8 +66,6 @@ def fetch_maps2(env, map_to_fetch):
     Returns:
         map(s) to ~.ros/
     """
-    global CLIENT
-
     # check if the map exists on local
     local_path = f"{FETCHED_MAPS_PATH}/{env}/{map_to_fetch}"
     if os.path.isdir(local_path):
@@ -137,9 +135,7 @@ def fetch_environment(env):
     Returns:
         A dict with key = "env name" and value = Environment class objects
     """
-    global CLIENT
-
-    if not FETCHED_ENV_OBJ_PATH.is_dir():  # Creating the directory if it doesnt exist
+    if not FETCHED_ENV_OBJ_PATH.is_dir():  # Creating the directory if it doesn't exist
         FETCHED_ENV_OBJ_PATH.mkdir(parents=True, exist_ok=True)
 
     # deleting all existing fetched items from the directory first
@@ -150,6 +146,7 @@ def fetch_environment(env):
     # downloading all info for the environment as a pkl file
     try:
         CLIENT.fget_object(ENV_BUCKET, env, file_path=f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl")
+
         # reading the downloaded env pkl file
         with open(f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl", 'rb') as f:
             env_data = pickle.load(f)

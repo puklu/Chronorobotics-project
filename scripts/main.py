@@ -1,20 +1,15 @@
-from copyreg import pickle
-import pickle
-import os
 import argparse
+import os
 from pathlib import Path
 from zipfile import ZipFile
 
-from utils import *
-from meta_data_extraction import *
-from fetch_utils import *
-from delete_utils import *
+from upload_utils import upload_objects, map_upload, create_buckets, env_upload
+from fetch_utils import print_env_details, fetch_maps, fetch_environment
+from delete_utils import delete_a_map, delete_all_maps_of_an_environment
 from find_shortest_path import get_shortest_path, print_shortest_path
 from data_manipulation import extract_map_metadata_manipulated
-# from utils import load_map, create_buckets, env_upload, map_upload, map_upload2, delete_a_map, delete_all_maps_of_an_environment,
-from constants import ROOT, OBJECTS_PATH, CLIENT, ENV_BUCKET, MAP_BUCKET, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, \
-    FETCHED_MAPS_PATH, DOT_ROS_PATH
-from classes_ import Map, Environment
+from constants import DOT_ROS_PATH
+from classes_ import Environment
 
 
 def main():
@@ -44,10 +39,8 @@ def main():
             and not args.delmaps \
             and not args.shortest \
             and not args.mani:
-        create_buckets()  # create the buckets
-        # upload_objects2()  # upload to db
 
-        # manipulate_data() # REMOVE THIS!! DANGEROUS EXPERIMENTS BELIES HERE !! :o
+        upload_objects()  # upload to db
 
     # delete all maps from an environment
     elif args.delmaps \
@@ -58,7 +51,7 @@ def main():
             and not args.snode \
             and not args.enode \
             and not args.delamap \
-            and not args.shortest\
+            and not args.shortest \
             and not args.mani:
         delete_all_maps_of_an_environment(args.delmaps)
 
@@ -70,8 +63,8 @@ def main():
             and not args.oe \
             and not args.snode \
             and not args.enode \
-            and not args.delmaps  \
-            and not args.shortest\
+            and not args.delmaps \
+            and not args.shortest \
             and not args.mani:
         map_name = args.delamap
         env_name = args.e
@@ -85,12 +78,11 @@ def main():
             and not args.snode \
             and not args.enode \
             and not args.delamap \
-            and not args.delmaps  \
-            and not args.shortest\
+            and not args.delmaps \
+            and not args.shortest \
             and not args.mani:
 
         print_env_details(args.oe)  # printing the metadata
-
 
     # when only -e is provided, all the maps for that particular environment are fetched
     elif args.e \
@@ -100,10 +92,10 @@ def main():
             and not args.snode \
             and not args.enode \
             and not args.delamap \
-            and not args.delmaps  \
-            and not args.shortest\
+            and not args.delmaps \
+            and not args.shortest \
             and not args.mani:
-        fetch_maps2(args.e, args.m)
+        fetch_maps(args.e, args.m)
 
     # when -e and -m are provided, that particular map is fetched for that environment
     elif args.e \
@@ -113,10 +105,10 @@ def main():
             and not args.snode \
             and not args.enode \
             and not args.delamap \
-            and not args.delmaps  \
-            and not args.shortest\
+            and not args.delmaps \
+            and not args.shortest \
             and not args.mani:
-        fetch_maps2(args.e, args.m)
+        fetch_maps(args.e, args.m)
 
     # when -u and -e are provided, map u is uploaded for env e from .ros
     elif args.u \
@@ -126,50 +118,15 @@ def main():
             and not args.m \
             and not args.oe \
             and not args.delamap \
-            and not args.delmaps  \
-            and not args.shortest\
+            and not args.delmaps \
+            and not args.shortest \
             and not args.mani:
-        create_buckets()  # create the buckets
 
-        path = Path(f"{DOT_ROS_PATH}/{args.u}")
-
-        if not path.is_dir():
-            print(f"The map {args.u} doesn't exist in local")
-            return
-
-        # zipping the map
-
-        with ZipFile(f"{DOT_ROS_PATH}/{args.e}.{args.u}.zip", 'w') as zip:
-            for path, directories, files in os.walk(path):
-                for file in files:
-                    file_name = os.path.join(path, file)
-                    zip.write(file_name, arcname=f"{args.u}/{os.path.basename(file_name)}")  # zipping the file
-
-        map_obj_name = f"{args.e}.{args.u}.zip"  # name to be used for the map object
         map_name = f"{args.u}"
         start_node = args.snode
         end_node = args.enode
 
-        # Fetch env obj from db, append to it, then replace the one in db
-        env_obj = fetch_environment(args.e)
-        if env_obj:  # if the env exists in db then update it
-            env_obj = extract_map_metadata2(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                            end_node_name=end_node)
-            if map_name not in env_obj.map_metadata['maps_names']:
-                env_obj = extract_map_metadata2(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                                end_node_name=end_node)
-
-        else:  # else create the env obj
-            env_obj = Environment(name=args.e, gps_position=None)  # env object for the current environment
-            env_obj = extract_map_metadata2(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                            end_node_name=end_node)
-
-        map_path = f"{str(DOT_ROS_PATH)}/{args.e}.{args.u}.zip"
-        map_upload2(env_name=args.e, obj_name=map_obj_name, map_name=map_name, path=map_path)
-        env_upload(env_data=env_obj)
-
-        # Delete the zip file
-        os.remove(f"{str(DOT_ROS_PATH)}/{args.e}.{args.u}.zip")
+        map_upload(env_name=args.e, map_name=map_name, start_node=start_node, end_node=end_node)
 
     # to find the shorted path between two nodes
     elif args.e \
@@ -180,28 +137,29 @@ def main():
             and not args.enode \
             and not args.delamap \
             and not args.delmaps \
-            and args.shortest\
+            and args.shortest \
             and not args.mani:
 
         env_obj = fetch_environment(args.e)
         starting_node_name = args.shortest[0]
         last_node_name = args.shortest[1]
-        shortest_path = get_shortest_path(env_obj=env_obj, starting_node_name=starting_node_name, end_node_name=last_node_name)
+        shortest_path = get_shortest_path(env_obj=env_obj, starting_node_name=starting_node_name,
+                                          end_node_name=last_node_name)
 
         print_shortest_path(shortest_path)
 
-    # ONLY FOR TESTING. SHOULD NOT BE CALLED OTHERWISE
+    # ONLY FOR TESTING. SHOULD NOT BE CALLED OTHERWISE!!
     # when -u, -e, -mani are provided, map u is uploaded for env e from .ros with the manipulated length of the map
     elif args.u \
-         and args.e \
-         and args.snode \
-         and args.enode \
-         and not args.m \
-         and not args.oe \
-         and not args.delamap \
-         and not args.delmaps \
-         and not args.shortest \
-         and args.mani:
+            and args.e \
+            and args.snode \
+            and args.enode \
+            and not args.m \
+            and not args.oe \
+            and not args.delamap \
+            and not args.delmaps \
+            and not args.shortest \
+            and args.mani:
 
         create_buckets()  # create the buckets
 
@@ -230,20 +188,21 @@ def main():
         env_obj = fetch_environment(args.e)
         if env_obj:  # if the env exists in db then update it
             env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                            end_node_name=end_node, distance=manipulated_value)
+                                                       end_node_name=end_node, distance=manipulated_value)
 
             if map_name not in env_obj.map_metadata['maps_names']:
-                env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                                end_node_name=end_node, distance=manipulated_value)
+                env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name,
+                                                           start_node_name=start_node,
+                                                           end_node_name=end_node, distance=manipulated_value)
 
 
         else:  # else create the env obj
             env_obj = Environment(name=args.e, gps_position=None)  # env object for the current environment
             env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                            end_node_name=end_node, distance=manipulated_value)
+                                                       end_node_name=end_node, distance=manipulated_value)
 
         map_path = f"{str(DOT_ROS_PATH)}/{args.e}.{args.u}.zip"
-        map_upload2(env_name=args.e, obj_name=map_obj_name, map_name=map_name, path=map_path)
+        map_upload(env_name=args.e, obj_name=map_obj_name, map_name=map_name, path=map_path)
         env_upload(env_data=env_obj)
 
         # Delete the zip file
@@ -251,50 +210,6 @@ def main():
 
     else:
         raise Exception("Please try again, something is missing..")
-
-# ONLY FOR TESTING
-def trying_function(env_name_, map_name_, s_node, e_node):
-    create_buckets()  # create the buckets
-
-    path = Path(f"{DOT_ROS_PATH}/{map_name_}")
-
-    if not path.is_dir():
-        print(f"The map {map_name_} doesn't exist in local")
-        return
-
-    # zipping the map
-
-    with ZipFile(f"{DOT_ROS_PATH}/{env_name_}.{map_name_}.zip", 'w') as zip:
-        for path, directories, files in os.walk(path):
-            for file in files:
-                file_name = os.path.join(path, file)
-                zip.write(file_name, arcname=f"{map_name_}/{os.path.basename(file_name)}")  # zipping the file
-
-    map_obj_name = f"{env_name_}.{map_name_}.zip"  # name to be used for the map object
-    map_name = f"{map_name_}"
-    start_node = s_node
-    end_node = e_node
-
-    # Fetch env obj from db, append to it, then replace the one in db
-    env_obj = fetch_environment(env_name_)
-    if env_obj:  # if the env exists in db then update it
-        env_obj = extract_map_metadata2(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                        end_node_name=end_node)
-        if map_name not in env_obj.map_metadata['maps_names']:
-            env_obj = extract_map_metadata2(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                            end_node_name=end_node)
-
-    else:  # else create the env obj
-        env_obj = Environment(name=env_name_, gps_position=None)  # env object for the current environment
-        env_obj = extract_map_metadata2(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                        end_node_name=end_node)
-
-    map_path = f"{str(DOT_ROS_PATH)}/{env_name_}.{map_name_}.zip"
-    map_upload2(env_name=env_name_, obj_name=map_obj_name, map_name=map_name, path=map_path)
-    env_upload(env_data=env_obj)
-
-    # Delete the zip file
-    os.remove(f"{str(DOT_ROS_PATH)}/{env_name_}.{map_name_}.zip")
 
 
 main()

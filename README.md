@@ -41,12 +41,14 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
 9. To upload all the recorded maps for all the environments in one go,
 
         Pre-requisites:
-            If you want to upload all the recorded maps so far, then maps  for each environment should be compressed and present in the directory ```objects/maps/``` , with map being separated into different directories based on the environment.
+            If you want to upload all the recorded maps so far, then maps  for each environment should be present in the directory ```objects/maps/``` , with map being separated into different directories based on the environment.
                     
             For example: all the maps for environment 'env0' should be in the directory ```objects/maps/env0/```
                             all the maps for environment 'env1' should be in the directory ```objects/maps/env1/```
                             and so on...
  
+        Note: 1. starting-node and ending-node for each map has to be manually entered in the code !
+              2. MANIPULATE flag should be set to False by default. 
           
         Run:    
         python main.py        
@@ -55,7 +57,8 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
 Note: The fetched maps from db are stored in `~/.ros`
 
 
-( While uploading maps, in case the user wants to manually manipulate the distance between the nodes for testing,
+( 
+While uploading maps, in case the user wants to manually manipulate the distance between the nodes for testing,
 
     python main.py -e <environment-to-which-map-belongs> -u <map-to-upload> -snode <starting-node> -enode <ending-node> -mani <manipulated-distance>
             

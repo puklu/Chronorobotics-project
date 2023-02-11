@@ -60,9 +60,6 @@ def delete_all_maps_of_an_environment(env_name):
     """
     env_obj = fetch_environment(env_name)  # fetching the env details
 
-    print("++++++++++")
-    print(env_obj)
-
     if env_obj:
         list_of_maps_in_the_env = env_obj.map_metadata['maps_names']
 

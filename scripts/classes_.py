@@ -17,7 +17,8 @@ class Environment:
                              'distances': [],
                              'distance': [],
                              'start_node': [],
-                             'end_node': []
+                             'end_node': [],
+                             'timestamp': []
                              }
 
     def pickle_env(self):

@@ -162,6 +162,7 @@ def upload_objects():
     MANIPULATE = True    # ATTENTION !! Data is probably being manipulated !!
     # *******************************************************************************
     DISTANCE         = [ 2,   4,   1,   1,   2,   8,   3,   1,   6 ]
+    TIMESTAMPS       = [None, None, None, None, None, None, None, None, None]
     # *******************************************************************************
 
     maps_path = OBJECTS_PATH / "maps"  # path of maps on local
@@ -205,7 +206,8 @@ def upload_objects():
             if not MANIPULATE:
                 env_obj = extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path=f"{maps_path}")
             elif MANIPULATE:
-                env_obj = extract_map_metadata_manipulated(env_obj, map_name, start_node_name, end_node_name, distance=DISTANCE[j], path=f"{maps_path}")
+                env_obj = extract_map_metadata_manipulated(env_obj, map_name, start_node_name, end_node_name, DISTANCE=DISTANCE[j], path=f"{maps_path}", TIMESTAMP=TIMESTAMPS[j])
+                env_obj.map_metadata['maps_names'].sort()  # ATTENTION! Sorting maps names. Hence naming of maps important when manipulating data
 
             map_upload(env_name=environments[i], map_name=map_name, start_node=start_node_name, end_node=end_node_name, map_path_in_local=f"{maps_path}")
 

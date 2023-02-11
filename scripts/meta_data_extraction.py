@@ -1,3 +1,4 @@
+from datetime import datetime
 from zipfile import ZipFile
 
 from classes_ import Node
@@ -28,9 +29,19 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     env_obj.map_metadata['maps_names'].append(map_name)
     # env_obj.map_metadata['images'].append(images)
     # env_obj.map_metadata['trans'].append(trans)
-    # env_obj.map_metadata['times'].append(times)
+    env_obj.map_metadata['times'].append(times)
     # env_obj.map_metadata['distances'].append(distances)
     env_obj.map_metadata['distance'].append(distance)  # the length of the path
+
+
+    '''
+    Calculating timestamp for the map
+    The middle point of times is assumed to be the timestamp for the map
+    '''
+    length_of_times = len(env_obj.map_metadata['times'][0][0])
+    average_timestamp = int(env_obj.map_metadata['times'][0][0][int(length_of_times / 2)].to_time())
+    timestamp = datetime.utcfromtimestamp(average_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+    env_obj.map_metadata['timestamp'].append(timestamp)
 
     # creating Nodes
     start_node, end_node = create_nodes(env_obj, start_node_name, end_node_name, distance)

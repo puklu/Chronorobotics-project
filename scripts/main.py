@@ -128,7 +128,7 @@ def main():
 
         map_upload(env_name=args.e, map_name=map_name, start_node=start_node, end_node=end_node)
 
-    # to find the shorted path between two nodes
+    # to find the shortest path between two nodes
     elif args.e \
             and not args.m \
             and not args.u \
@@ -143,10 +143,12 @@ def main():
         env_obj = fetch_environment(args.e)
         starting_node_name = args.shortest[0]
         last_node_name = args.shortest[1]
-        shortest_path = get_shortest_path(env_obj=env_obj, starting_node_name=starting_node_name,
-                                          end_node_name=last_node_name)
 
-        print_shortest_path(shortest_path)
+        shortest_path_nodes, shortest_path_maps = get_shortest_path(env_obj=env_obj,
+                                                                    starting_node_name=starting_node_name,
+                                                                    end_node_name=last_node_name)
+
+        print_shortest_path(shortest_path_nodes, shortest_path_maps)
 
     # ONLY FOR TESTING. SHOULD NOT BE CALLED OTHERWISE!!
     # when -u, -e, -mani are provided, map u is uploaded for env e from .ros with the manipulated length of the map
@@ -188,18 +190,17 @@ def main():
         env_obj = fetch_environment(args.e)
         if env_obj:  # if the env exists in db then update it
             env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                                       end_node_name=end_node, distance=manipulated_value)
+                                                       end_node_name=end_node, DISTANCE=manipulated_value)
 
             if map_name not in env_obj.map_metadata['maps_names']:
                 env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name,
                                                            start_node_name=start_node,
-                                                           end_node_name=end_node, distance=manipulated_value)
-
+                                                           end_node_name=end_node, DISTANCE=manipulated_value)
 
         else:  # else create the env obj
             env_obj = Environment(name=args.e, gps_position=None)  # env object for the current environment
             env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                                       end_node_name=end_node, distance=manipulated_value)
+                                                       end_node_name=end_node, DISTANCE=manipulated_value)
 
         map_path = f"{str(DOT_ROS_PATH)}/{args.e}.{args.u}.zip"
         map_upload(env_name=args.e, obj_name=map_obj_name, map_name=map_name, path=map_path)

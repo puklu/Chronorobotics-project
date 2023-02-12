@@ -30,13 +30,13 @@ def print_env_details(env_name):
         # for enode in meta_data_dict['end_node']:
         #     print(enode.key)
 
-        # print(f"Neighbours of NODES are:")
-        # for node in env_obj.nodes:
-        #     # print(f"Weight of the node is: {node.weight}")
-        #     print(f"Neighbours of {node.key} with distance are:", end=' ')
-        #     for neighbour in node.neighbours:
-        #         print(f"{neighbour[0].key}: {neighbour[1]}", end=' | ')
-        #     print()
+        print(f"Neighbours of NODES are:")
+        for node in env_obj.nodes:
+            # print(f"Weight of the node is: {node.weight}")
+            print(f"Neighbours of {node.key} with distance are:", end=' ')
+            for neighbour in node.neighbours:
+                print(f"{neighbour[0].key}: {neighbour[2]}", end=' | ')
+            print()
 
         # print(env_obj.map_metadata)
         # for node in env_obj.nodes:
@@ -72,7 +72,7 @@ def fetch_maps(env, map_to_fetch):
         map(s) to ~.ros/
     """
     # check if the map exists on local
-    local_path = f"{FETCHED_MAPS_PATH}/{env}/{map_to_fetch}"
+    local_path = f"{FETCHED_MAPS_PATH}/{map_to_fetch}"
     if os.path.isdir(local_path):
         print(f"{map_to_fetch} for {env} exists on local, fetching from db skipped....")
         return

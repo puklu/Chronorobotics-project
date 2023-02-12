@@ -51,7 +51,7 @@ def extract_map_metadata_manipulated(env_obj, map_name, start_node_name, end_nod
         env_obj.map_metadata['timestamp'].append(TIMESTAMP)
 
     # creating Nodes
-    start_node, end_node = create_nodes(env_obj, start_node_name, end_node_name, DISTANCE)
+    start_node, end_node = create_nodes(env_obj, start_node_name, end_node_name, DISTANCE, map_name)
 
     env_obj.map_metadata['start_node'].append(start_node)
     env_obj.map_metadata['end_node'].append(end_node)
@@ -67,7 +67,7 @@ def extract_map_metadata_manipulated(env_obj, map_name, start_node_name, end_nod
     return env_obj
 
 
-def create_nodes(env_obj, start_node_name, end_node_name, distance):
+def create_nodes(env_obj, start_node_name, end_node_name, distance, map_name):
     """
     Creates instances of Node class and adds the neighbour and path weight information for the nodes
     Args:
@@ -96,8 +96,8 @@ def create_nodes(env_obj, start_node_name, end_node_name, distance):
     start_node.weight = 10000
     end_node.weight = 10000
 
-    start_node.neighbours.append((end_node, distance))
-    end_node.neighbours.append((start_node, distance))
+    start_node.neighbours.append((end_node, map_name, distance))
+    end_node.neighbours.append((start_node, map_name, distance))
 
     return start_node, end_node
 

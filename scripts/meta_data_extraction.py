@@ -44,7 +44,7 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     env_obj.map_metadata['timestamp'].append(timestamp)
 
     # creating Nodes
-    start_node, end_node = create_nodes(env_obj, start_node_name, end_node_name, distance)
+    start_node, end_node = create_nodes(env_obj, start_node_name, end_node_name, distance, map_name)
 
     env_obj.map_metadata['start_node'].append(start_node)
     env_obj.map_metadata['end_node'].append(end_node)
@@ -84,7 +84,7 @@ def OBSOLETE_extract_map_metadata(env_obj, map_name):
         env_obj.map_metadata['distances'].append(distances)
 
 
-def create_nodes(env_obj, start_node_name, end_node_name, distance):
+def create_nodes(env_obj, start_node_name, end_node_name, distance, map_name):
     """
     Creates instances of Node class and adds the neighbour and path weight information for the nodes
     Args:
@@ -110,11 +110,11 @@ def create_nodes(env_obj, start_node_name, end_node_name, distance):
         end_node = env_obj.nodes[e_idx]
 
     # setting the weights to a big number for shortest path finding algorithm
-    start_node.weight = 10000
-    end_node.weight = 10000
+    start_node.weight = 10000000
+    end_node.weight = 10000000
 
-    start_node.neighbours.append((end_node, distance))
-    end_node.neighbours.append((start_node, distance))
+    start_node.neighbours.append((end_node, map_name, distance))
+    end_node.neighbours.append((start_node, map_name, distance))
 
     return start_node, end_node
 

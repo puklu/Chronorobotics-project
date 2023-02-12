@@ -155,14 +155,14 @@ def upload_objects():
 
     # ******************************************************************************
     # to be set by the user manually to give names to nodes
-    START_NODE_NAMES = ['a', 'b', 'c', 'd', 'e', 'a', 'b', 'd', 'c']
-    END_NODE_NAMES   = ['b', 'c', 'd', 'e', 'f', 'f', 'e', 'g', 'g']
+    START_NODE_NAMES = ['a', 'b', 'c', 'd', 'e', 'f', 'b', 'd', 'c', 'b']
+    END_NODE_NAMES   = ['b', 'c', 'd', 'e', 'f', 'a', 'e', 'g', 'g', 'e']
 
     # *******************************************************************************
     MANIPULATE = True    # ATTENTION !! Data is probably being manipulated !!
     # *******************************************************************************
-    DISTANCE         = [ 2,   4,   1,   1,   2,   8,   3,   1,   6 ]
-    TIMESTAMPS       = [None, None, None, None, None, None, None, None, None]
+    DISTANCE         = [ 2,   4,   1,   1,   2,   8,   3,   1,   6,   1 ]
+    TIMESTAMPS       = [None, None, None, None, None, None, None, None, None, None]
     # *******************************************************************************
 
     maps_path = OBJECTS_PATH / "maps"  # path of maps on local

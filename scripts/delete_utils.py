@@ -25,8 +25,11 @@ def delete_a_map(env_name, map_name):
             # deleting all the data at the index corresponding to the deleted map
             del env_obj.map_metadata['maps_names'][idx]
             del env_obj.map_metadata['distance'][idx]
+            # del env_obj.map_metadata['distances'][idx]
             del env_obj.map_metadata['start_node'][idx]
             del env_obj.map_metadata['end_node'][idx]
+            del env_obj.map_metadata['times'][idx]
+            del env_obj.map_metadata['timestamp'][idx]
 
             # updating the nodes of the environment
             env_obj.nodes = []
@@ -36,6 +39,10 @@ def delete_a_map(env_name, map_name):
             for enode in env_obj.map_metadata['end_node']:
                 if enode not in env_obj.nodes:
                     env_obj.nodes.append(enode)
+
+            # updating the neighbours of the environment
+            # TODO
+
 
             if len(env_obj.nodes) > 0:  # if there are still nodes in the environment
                 env_upload(env_data=env_obj)  # uploading the updated env object

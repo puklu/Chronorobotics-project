@@ -150,6 +150,11 @@ def main():
 
         print_shortest_path(shortest_path_nodes, shortest_path_maps)
 
+        # fetching the maps corresponding to shortest path
+        for map_ in shortest_path_maps:
+            fetch_maps(args.e, map_)
+
+
     # ONLY FOR TESTING. SHOULD NOT BE CALLED OTHERWISE!!
     # when -u, -e, -mani are provided, map u is uploaded for env e from .ros with the manipulated length of the map
     elif args.u \
@@ -163,8 +168,13 @@ def main():
             and not args.shortest \
             and args.mani:
 
-        create_buckets()  # create the buckets
+        from constants import CLIENT
+        from constants import MAP_BUCKET
 
+        map_name = args.u
+        env_name = args.e
+        start_node = args.snode
+        end_node = args.enode
         manipulated_value = int(args.mani)  # manipulating distance
 
         path = Path(f"{DOT_ROS_PATH}/{args.u}")
@@ -182,9 +192,7 @@ def main():
                     zip.write(file_name, arcname=f"{args.u}/{os.path.basename(file_name)}")  # zipping the file
 
         map_obj_name = f"{args.e}.{args.u}.zip"  # name to be used for the map object
-        map_name = f"{args.u}"
-        start_node = args.snode
-        end_node = args.enode
+
 
         # Fetch env obj from db, append to it, then replace the one in db
         env_obj = fetch_environment(args.e)
@@ -203,11 +211,24 @@ def main():
                                                        end_node_name=end_node, DISTANCE=manipulated_value)
 
         map_path = f"{str(DOT_ROS_PATH)}/{args.e}.{args.u}.zip"
-        map_upload(env_name=args.e, obj_name=map_obj_name, map_name=map_name, path=map_path)
+
+        ##########################################33
+        # Uploading the map
+        try:
+            statobj = CLIENT.stat_object(MAP_BUCKET, map_obj_name, ssec=None, version_id=None, extra_query_params=None)
+            print(f"{map_obj_name} already exists in {MAP_BUCKET} bucket")
+
+        except:
+            CLIENT.fput_object(bucket_name=MAP_BUCKET, object_name=map_obj_name, file_path=map_path)
+            print(f"Map {map_obj_name} uploaded to {MAP_BUCKET} bucket")
+
+        # uploading the corresponding env obj
         env_upload(env_data=env_obj)
 
-        # Delete the zip file
-        os.remove(f"{str(DOT_ROS_PATH)}/{args.e}.{args.u}.zip")
+        # Delete the zipped map from local
+        os.remove(f"{str(DOT_ROS_PATH)}/{env_name}.{map_name}.zip")
+
+        ##########################################
 
     else:
         raise Exception("Please try again, something is missing..")

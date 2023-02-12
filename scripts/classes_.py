@@ -64,7 +64,8 @@ class Node:
     def __init__(self, key):
         self.key = key
         self.weight = None
-        self.via = None
+        self.via_node = None
+        self.via_map = None
         self.isVisited = False
         self.neighbours = []
 

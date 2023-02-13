@@ -4,6 +4,7 @@ from zipfile import ZipFile
 from classes_ import Node
 from constants import ROOT, OBJECTS_PATH, DOT_ROS_PATH
 from load_map import load_map
+from graph_creation import create_graph
 
 
 def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path=None):
@@ -44,7 +45,7 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     env_obj.map_metadata['timestamp'].append(timestamp)
 
     # creating Nodes
-    start_node, end_node = create_nodes(env_obj, start_node_name, end_node_name, distance, map_name)
+    start_node, end_node = create_graph(env_obj, start_node_name, end_node_name, map_name, distance) #, cost)
 
     env_obj.map_metadata['start_node'].append(start_node)
     env_obj.map_metadata['end_node'].append(end_node)
@@ -83,39 +84,5 @@ def OBSOLETE_extract_map_metadata(env_obj, map_name):
         env_obj.map_metadata['times'].append(times)
         env_obj.map_metadata['distances'].append(distances)
 
-
-def create_nodes(env_obj, start_node_name, end_node_name, distance, map_name):
-    """
-    Creates instances of Node class and adds the neighbour and path weight information for the nodes
-    Args:
-        env_obj: the environment object
-        start_node_name: Name of the starting node
-        end_node_name: Name of the ending node
-        distance: Distance between the two nodes
-
-    Returns: Node instances
-    """
-    if start_node_name not in env_obj.nodes_names:  # if the node already doesn't exist for the env
-        start_node = Node(start_node_name)
-
-    elif start_node_name in env_obj.nodes_names:    # if the node exists for the env, make that the start node
-        s_idx = env_obj.nodes_names.index(start_node_name)
-        start_node = env_obj.nodes[s_idx]
-
-    if end_node_name not in env_obj.nodes_names:    # if the node already doesn't exist for the env
-        end_node = Node(end_node_name)
-
-    elif end_node_name in env_obj.nodes_names:      # if the node exists for the env, make that the end node
-        e_idx = env_obj.nodes_names.index(end_node_name)
-        end_node = env_obj.nodes[e_idx]
-
-    # setting the weights to a big number for shortest path finding algorithm
-    start_node.weight = 10000000
-    end_node.weight = 10000000
-
-    start_node.neighbours.append((end_node, map_name, distance))
-    end_node.neighbours.append((start_node, map_name, distance))
-
-    return start_node, end_node
 
 

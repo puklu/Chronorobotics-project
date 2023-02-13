@@ -23,6 +23,7 @@ map_storage/
 .venv
 venv/
 env/
+.vscode/
 
 .idea
 __pycache__/

@@ -24,7 +24,7 @@ def main():
     parser.add_argument('-delmaps', help="Name of the env from which all maps are to be deleted")
     parser.add_argument('-shortest', help="Starting nodes for shortest path between two nodes", nargs='+')
 
-    parser.add_argument('-mani', help="To manipulate distance between two nodes when uploading maps")
+    parser.add_argument('-mani', help="To manipulate distance and cost between two nodes when uploading maps", nargs='+')
 
     args = parser.parse_args()
 
@@ -150,9 +150,9 @@ def main():
 
         print_shortest_path(shortest_path_nodes, shortest_path_maps)
 
-        # fetching the maps corresponding to shortest path
-        for map_ in shortest_path_maps:
-            fetch_maps(args.e, map_)
+        # # fetching the maps corresponding to shortest path
+        # for map_ in shortest_path_maps:
+        #     fetch_maps(args.e, map_)
 
 
     # ONLY FOR TESTING. SHOULD NOT BE CALLED OTHERWISE!!
@@ -175,7 +175,8 @@ def main():
         env_name = args.e
         start_node = args.snode
         end_node = args.enode
-        manipulated_value = int(args.mani)  # manipulating distance
+        manipulated_distance = int(args.mani[0])  # manipulating distance
+        manipulated_cost = int(args.mani[1])  # manipulating cost
 
         path = Path(f"{DOT_ROS_PATH}/{args.u}")
 
@@ -198,17 +199,17 @@ def main():
         env_obj = fetch_environment(args.e)
         if env_obj:  # if the env exists in db then update it
             env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                                       end_node_name=end_node, DISTANCE=manipulated_value)
+                                                       end_node_name=end_node, DISTANCE=manipulated_distance, COST=manipulated_cost)
 
             if map_name not in env_obj.map_metadata['maps_names']:
                 env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name,
                                                            start_node_name=start_node,
-                                                           end_node_name=end_node, DISTANCE=manipulated_value)
+                                                           end_node_name=end_node, DISTANCE=manipulated_distance, COST=manipulated_cost)
 
         else:  # else create the env obj
             env_obj = Environment(name=args.e, gps_position=None)  # env object for the current environment
             env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                                       end_node_name=end_node, DISTANCE=manipulated_value)
+                                                       end_node_name=end_node, DISTANCE=manipulated_distance)
 
         map_path = f"{str(DOT_ROS_PATH)}/{args.e}.{args.u}.zip"
 
@@ -235,3 +236,19 @@ def main():
 
 
 main()
+#
+# if __name__ == "__main__":
+#
+#     env_obj = fetch_environment('env0')
+#
+#     print(env_obj)
+#
+#     starting_node_name = 'a'
+#     last_node_name = 'd'
+#
+#     shortest_path_nodes, shortest_path_maps = get_shortest_path(env_obj=env_obj,
+#                                                                 starting_node_name=starting_node_name,
+#                                                                 end_node_name=last_node_name)
+#
+#     print_shortest_path(shortest_path_nodes, shortest_path_maps)
+#

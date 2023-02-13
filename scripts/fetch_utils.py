@@ -32,7 +32,7 @@ def print_env_details(env_name):
 
         print(f"Neighbours of NODES are:")
         for node in env_obj.nodes:
-            # print(f"Weight of the node is: {node.weight}")
+            print(f"Weight and cost of the node are: {node.g_cost} | {node.h_cost}")
             print(f"Neighbours of {node.key} with distance are:", end=' ')
             for neighbour in node.neighbours:
                 print(f"{neighbour[0].key}: {neighbour[2]}", end=' | ')
@@ -138,7 +138,7 @@ def fetch_environment(env):
     Args:
         env: Environment which is to be fetched
     Returns:
-        A dict with key = "env name" and value = Environment class objects
+
     """
     if not FETCHED_ENV_OBJ_PATH.is_dir():  # Creating the directory if it doesn't exist
         FETCHED_ENV_OBJ_PATH.mkdir(parents=True, exist_ok=True)
@@ -155,6 +155,7 @@ def fetch_environment(env):
         # reading the downloaded env pkl file
         with open(f"{FETCHED_ENV_OBJ_PATH}/{env}.pkl", 'rb') as f:
             env_data = pickle.load(f)
+
         return env_data
 
     except:

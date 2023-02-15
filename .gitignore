@@ -28,4 +28,4 @@ env/
 .idea
 __pycache__/
 
-run.sh
+test*.sh

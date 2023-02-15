@@ -161,7 +161,7 @@ def get_shortest_path(env_obj, starting_node_name, end_node_name):
         end_node_name: Node at which search should end
     Returns: A list of nodes, which is the shortest path.
     """
-    USE_A_STAR = True  # Set to False if Dijkstra is to be used
+    USE_A_STAR = False  # Set to False if Dijkstra is to be used
 
     if USE_A_STAR:
         shortest_path_nodes, shortest_path_maps = a_star(env_obj.nodes, starting_node_name, end_node_name)

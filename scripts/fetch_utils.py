@@ -32,7 +32,7 @@ def print_env_details(env_name):
 
         print(f"Neighbours of NODES are:")
         for node in env_obj.nodes:
-            print(f"Weight and cost of the node are: {node.g_cost} | {node.h_cost}")
+            # print(f"Weight and cost of the node are: {node.g_cost} | {node.h_cost}")
             print(f"Neighbours of {node.key} with distance are:", end=' ')
             for neighbour in node.neighbours:
                 print(f"{neighbour[0].key}: {neighbour[2]}", end=' | ')
@@ -62,7 +62,7 @@ def fetch_map_metadata(env_obj):
         return None
 
 
-def fetch_maps(env, map_to_fetch):
+def fetch_maps(env, map_to_fetch=None):
     """
     Fetches maps into ~.ros/  for an environment
     Args:

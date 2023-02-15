@@ -5,8 +5,8 @@ from zipfile import ZipFile
 from constants import TO_UPLOAD_PATH, OBJECTS_PATH, ENV_BUCKET, MAP_BUCKET, DOT_ROS_PATH, CLIENT
 from classes_ import Environment
 from fetch_utils import fetch_environment
-from meta_data_extraction import  extract_map_metadata
-from data_manipulation import extract_map_metadata_manipulated
+from meta_data_extraction import extract_map_metadata
+from data_manipulation import extract_map_metadata_manipulated, manipulated_map_upload
 
 
 def create_buckets():
@@ -71,34 +71,29 @@ def OBSOLETE_map_upload(map_data):
         print(f"Map {obj_name} uploaded to {MAP_BUCKET} bucket")
 
 
-def map_upload(env_name, map_name, start_node, end_node, map_path_in_local=None):
+def zip_the_map(env_name, map_name, path_to_directory_containing_map_directory):
     """
-    Uploads a zipped map to db
+    Zips a directory containing a map
     Args:
-        map_path_in_local: path provided if maps are not to be uploaded from the default ~/.ros/ directory
-        env_name: name of the environment
-        map_name: map name on local
-        start_node: name of the first node of the map
-        end_node: name of the second node of the map
+        env_name: Name of the environment to which the map belongs
+        map_name: Name of the map
+        path_to_directory_containing_map_directory: Location of directory that has the directory that contains the map on disk
+
+    Returns: Location of the specific map on disk
     """
-
-    create_buckets()  # create the buckets in case they do not exist in the db
-
-    map_obj_name = f"{env_name}.{map_name}.zip"   # name of map object in db
-
-    if map_path_in_local is None:
-        path = Path(f"{DOT_ROS_PATH}/{map_name}")     # location of map in local ( ~/.ros/ )
+    if path_to_directory_containing_map_directory is None:
+        path = Path(f"{DOT_ROS_PATH}/{map_name}")  # location of map in local ( ~/.ros/ )
         zip_file_name = f"{DOT_ROS_PATH}/{env_name}.{map_name}.zip"
-        path_for_meta_data_extraction = None
+        location_of_map = path
     else:
-        path = Path(f"{map_path_in_local}/{env_name}/{map_name}")
-        zip_file_name = f"{map_path_in_local}/{env_name}.{map_name}.zip"
-        path_for_meta_data_extraction = Path(map_path_in_local)
+        path = Path(f"{path_to_directory_containing_map_directory}/{map_name}")
+        zip_file_name = f"{path_to_directory_containing_map_directory}/{env_name}.{map_name}.zip"
+        location_of_map = path  # NOT the location of zipped file
 
     # if the map doesn't exist on local
     if not path.is_dir():
         print(f"The map {map_name} doesn't exist in local")
-        return
+        return None
 
     # zipping the map
     with ZipFile(zip_file_name, 'w') as zip:
@@ -107,25 +102,47 @@ def map_upload(env_name, map_name, start_node, end_node, map_path_in_local=None)
                 out_file_name = os.path.join(path, file)
                 zip.write(out_file_name, arcname=f"{map_name}/{os.path.basename(out_file_name)}")  # zipping the file
 
+    return location_of_map
+
+
+def map_upload(env_name, map_name, start_node, end_node, path_to_directory_containing_map_directory=None):
+    """
+    Uploads a zipped map to db
+    Args:
+        path_to_directory_containing_map_directory: path provided if maps are not to be uploaded from the default ~/.ros/ directory
+        env_name: name of the environment
+        map_name: map name on local
+        start_node: name of the first node of the map
+        end_node: name of the second node of the map
+    """
+
+    create_buckets()  # create the buckets in case they do not exist in the db
+
+    map_obj_name = f"{env_name}.{map_name}.zip"  # name of map object in db
+
+    # zip the map
+    location_of_map = zip_the_map(env_name=env_name, map_name=map_name,
+                                  path_to_directory_containing_map_directory=path_to_directory_containing_map_directory)
+
+    if location_of_map is None:  # map doesn't exist in local
+        return
+
     # Fetch env obj from db, append to it, then replace the one in db
     env_obj = fetch_environment(env_name)
     if env_obj:  # if the env exists in db then update it
-        env_obj = extract_map_metadata(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                       end_node_name=end_node, path=path_for_meta_data_extraction)
-        if map_name not in env_obj.map_metadata['maps_names']:    # adding the name of the map to metadata if doesnt exist
+        if map_name not in env_obj.map_metadata['maps_names']:  # adding the name of the map to metadata if doesn't exist
             env_obj = extract_map_metadata(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                           end_node_name=end_node, path=path_for_meta_data_extraction)
+                                           end_node_name=end_node, path=location_of_map)
 
-    else:        # else create the env obj
+    else:  # else create the env obj
         env_obj = Environment(name=env_name, gps_position=None)  # env object for the current environment
         env_obj = extract_map_metadata(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                       end_node_name=end_node, path=path_for_meta_data_extraction)
+                                       end_node_name=end_node, path=location_of_map)
 
-    if map_path_in_local is None:
+    if path_to_directory_containing_map_directory is None:
         map_path = f"{str(DOT_ROS_PATH)}/{env_name}.{map_name}.zip"  # path of the zipped map that will be uploaded
     else:
-        map_path = f"{map_path_in_local}/{env_name}.{map_name}.zip"  # path of the zipped map that will be uploaded
-
+        map_path = f"{path_to_directory_containing_map_directory}/{env_name}.{map_name}.zip"  # path of the zipped map that will be uploaded
 
     # Uploading the map
     try:
@@ -134,19 +151,17 @@ def map_upload(env_name, map_name, start_node, end_node, map_path_in_local=None)
 
     except:
         CLIENT.fput_object(bucket_name=MAP_BUCKET, object_name=map_obj_name, file_path=map_path)
+        env_upload(env_data=env_obj)  # uploading the env obj
         print(f"Map {map_obj_name} uploaded to {MAP_BUCKET} bucket")
 
-    # uploading the corresponding env obj
-    env_upload(env_data=env_obj)
-
     # Delete the zipped map from local
-    if map_path_in_local is None:
+    if path_to_directory_containing_map_directory is None:
         os.remove(f"{str(DOT_ROS_PATH)}/{env_name}.{map_name}.zip")
     else:
-        os.remove(f"{map_path_in_local}/{env_name}.{map_name}.zip")
+        os.remove(f"{path_to_directory_containing_map_directory}/{env_name}.{map_name}.zip")
 
 
-def upload_objects():
+def batch_upload():
     """
     Uploads all the maps in maps_path directory and creates the corresponding env objects and uploads them.
     NOTE: Start nodes, end nodes, and any other that need to be MANIPULATED should be manually entered in the method.
@@ -156,13 +171,14 @@ def upload_objects():
     # ******************************************************************************
     # to be set by the user manually to give names to nodes
     START_NODE_NAMES = ['a', 'b', 'c', 'd', 'e', 'f', 'b', 'd', 'c', 'b']
-    END_NODE_NAMES   = ['b', 'c', 'd', 'e', 'f', 'a', 'e', 'g', 'g', 'e']
+    END_NODE_NAMES = ['b', 'c', 'd', 'e', 'f', 'a', 'e', 'g', 'g', 'e']
 
     # *******************************************************************************
-    MANIPULATE = True    # ATTENTION !! Data is probably being manipulated !!
+    MANIPULATE = True  # ATTENTION !! Data is probably being manipulated !!
     # *******************************************************************************
-    DISTANCE         = [ 2,   4,   1,   1,   2,   8,   3,   1,   6,   1 ]
-    TIMESTAMPS       = [None, None, None, None, None, None, None, None, None, None]
+    DISTANCE = [2, 4, 1, 1, 2, 8, 3, 1, 6, 1]
+    COST =     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    TIMESTAMPS = [None, None, None, None, None, None, None, None, None, None]
     # *******************************************************************************
 
     maps_path = OBJECTS_PATH / "maps"  # path of maps on local
@@ -183,32 +199,39 @@ def upload_objects():
     for i in range(number_of_environments):
 
         dirs_in_env_dir = list(os.listdir((maps_path / environments[i])))
+
+        dirs_in_env_dir.sort()  # ATTENTION! Sorting maps names. Hence naming of maps important when adding data (distance etc) manually.
+
         maps = []
 
         for dir_ in dirs_in_env_dir:
-            maps.append(dir_)
+            if not dir_.endswith(".zip"):
+                maps.append(dir_)
 
         number_of_maps = len(maps)
 
-        # first check if the env already exists in the db
-        if fetch_environment(environments[i]):
-            env_obj = fetch_environment(environments[i])  # if the env exists in db then use it
-        else:
-            env_obj = Environment(name=environments[i], gps_position=None)  # else env object for the current environment
-
         # iterating over each map in the current environment
         for j in range(number_of_maps):
+
             map_name = maps[j]
 
             start_node_name = START_NODE_NAMES[j]
             end_node_name = END_NODE_NAMES[j]
 
             if not MANIPULATE:
-                env_obj = extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path=f"{maps_path}")
+                map_upload(env_name=environments[i],
+                           map_name=map_name,
+                           start_node=start_node_name,
+                           end_node=end_node_name,
+                           path_to_directory_containing_map_directory=f"{maps_path}/{environments[i]}")
+
             elif MANIPULATE:
-                env_obj = extract_map_metadata_manipulated(env_obj, map_name, start_node_name, end_node_name, DISTANCE=DISTANCE[j], path=f"{maps_path}", TIMESTAMP=TIMESTAMPS[j])
-                env_obj.map_metadata['maps_names'].sort()  # ATTENTION! Sorting maps names. Hence naming of maps important when manipulating data
+                manipulated_map_upload(env_name=environments[i],
+                                       map_name=map_name,
+                                       start_node=start_node_name,
+                                       end_node=end_node_name,
+                                       manipulated_distance= DISTANCE[j],
+                                       manipulated_cost=COST[j],
+                                       path_to_directory_containing_map_directory=f"{maps_path}/{environments[i]}", )
 
-            map_upload(env_name=environments[i], map_name=map_name, start_node=start_node_name, end_node=end_node_name, map_path_in_local=f"{maps_path}")
 
-        env_upload(env_data=env_obj)

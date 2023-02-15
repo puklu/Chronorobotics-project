@@ -58,8 +58,8 @@ Note: The fetched maps from db are stored in `~/.ros`
 
 
 ( 
-While uploading maps, in case the user wants to manually manipulate the distance between the nodes for testing,
+While uploading maps, in case the user wants to manually manipulate the distance and heuristic cost between the nodes for testing,
 
-    python main.py -e <environment-to-which-map-belongs> -u <map-to-upload> -snode <starting-node> -enode <ending-node> -mani <manipulated-distance>
+    python main.py -e <environment-to-which-map-belongs> -u <map-to-upload> -snode <starting-node> -enode <ending-node> -mani <manipulated-distance> <manipulated-cost>
             
 )

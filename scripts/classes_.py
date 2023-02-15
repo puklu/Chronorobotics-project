@@ -57,18 +57,4 @@ class Map:
         return pickled_object
 
 
-class Node:
-    """
-    A class for creating the nodes of the graph
-    """
-    def __init__(self, key):
-        self.key = key
-        self.g_cost = None    # distance cost
-        self.h_cost = 0       # heuristic cost
-        self.f_cost = 0       # distance cost + heuristic cost
-        self.via_node = None  # to be used while finding the shortest path (arrived to this node via which node)
-        self.via_map = None   # to be used while finding the shortest path (arrived to this node via which path/map)
-        self.isVisited = False
-        self.neighbours = []
-
 

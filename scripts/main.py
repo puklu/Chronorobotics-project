@@ -1,15 +1,10 @@
 import argparse
-import os
-from pathlib import Path
-from zipfile import ZipFile
 
-from upload_utils import upload_objects, map_upload, create_buckets, env_upload
+from upload_utils import batch_upload, map_upload, create_buckets, env_upload
 from fetch_utils import print_env_details, fetch_maps, fetch_environment
 from delete_utils import delete_a_map, delete_all_maps_of_an_environment
 from find_shortest_path import get_shortest_path, print_shortest_path
-from data_manipulation import extract_map_metadata_manipulated
-from constants import DOT_ROS_PATH
-from classes_ import Environment
+from data_manipulation import  manipulated_map_upload
 
 
 def main():
@@ -40,7 +35,7 @@ def main():
             and not args.shortest \
             and not args.mani:
 
-        upload_objects()  # upload to db
+        batch_upload()  # upload to db
 
     # delete all maps from an environment
     elif args.delmaps \
@@ -95,7 +90,7 @@ def main():
             and not args.delmaps \
             and not args.shortest \
             and not args.mani:
-        fetch_maps(args.e, args.m)
+        fetch_maps(args.e)
 
     # when -e and -m are provided, that particular map is fetched for that environment
     elif args.e \
@@ -128,7 +123,7 @@ def main():
 
         map_upload(env_name=args.e, map_name=map_name, start_node=start_node, end_node=end_node)
 
-    # to find the shortest path between two nodes
+    # Find the shortest path between two nodes
     elif args.e \
             and not args.m \
             and not args.u \
@@ -168,9 +163,6 @@ def main():
             and not args.shortest \
             and args.mani:
 
-        from constants import CLIENT
-        from constants import MAP_BUCKET
-
         map_name = args.u
         env_name = args.e
         start_node = args.snode
@@ -178,77 +170,15 @@ def main():
         manipulated_distance = int(args.mani[0])  # manipulating distance
         manipulated_cost = int(args.mani[1])  # manipulating cost
 
-        path = Path(f"{DOT_ROS_PATH}/{args.u}")
-
-        if not path.is_dir():
-            print(f"The map {args.u} doesn't exist in local")
-            return
-
-        # zipping the map
-
-        with ZipFile(f"{DOT_ROS_PATH}/{args.e}.{args.u}.zip", 'w') as zip:
-            for path, directories, files in os.walk(path):
-                for file in files:
-                    file_name = os.path.join(path, file)
-                    zip.write(file_name, arcname=f"{args.u}/{os.path.basename(file_name)}")  # zipping the file
-
-        map_obj_name = f"{args.e}.{args.u}.zip"  # name to be used for the map object
-
-
-        # Fetch env obj from db, append to it, then replace the one in db
-        env_obj = fetch_environment(args.e)
-        if env_obj:  # if the env exists in db then update it
-            env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                                       end_node_name=end_node, DISTANCE=manipulated_distance, COST=manipulated_cost)
-
-            if map_name not in env_obj.map_metadata['maps_names']:
-                env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name,
-                                                           start_node_name=start_node,
-                                                           end_node_name=end_node, DISTANCE=manipulated_distance, COST=manipulated_cost)
-
-        else:  # else create the env obj
-            env_obj = Environment(name=args.e, gps_position=None)  # env object for the current environment
-            env_obj = extract_map_metadata_manipulated(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
-                                                       end_node_name=end_node, DISTANCE=manipulated_distance)
-
-        map_path = f"{str(DOT_ROS_PATH)}/{args.e}.{args.u}.zip"
-
-        ##########################################33
-        # Uploading the map
-        try:
-            statobj = CLIENT.stat_object(MAP_BUCKET, map_obj_name, ssec=None, version_id=None, extra_query_params=None)
-            print(f"{map_obj_name} already exists in {MAP_BUCKET} bucket")
-
-        except:
-            CLIENT.fput_object(bucket_name=MAP_BUCKET, object_name=map_obj_name, file_path=map_path)
-            print(f"Map {map_obj_name} uploaded to {MAP_BUCKET} bucket")
-
-        # uploading the corresponding env obj
-        env_upload(env_data=env_obj)
-
-        # Delete the zipped map from local
-        os.remove(f"{str(DOT_ROS_PATH)}/{env_name}.{map_name}.zip")
-
-        ##########################################
+        manipulated_map_upload(env_name=env_name,
+                               map_name=map_name,
+                               start_node=start_node,
+                               end_node=end_node,
+                               manipulated_distance=manipulated_distance,
+                               manipulated_cost=manipulated_cost)
 
     else:
         raise Exception("Please try again, something is missing..")
 
 
 main()
-#
-# if __name__ == "__main__":
-#
-#     env_obj = fetch_environment('env0')
-#
-#     print(env_obj)
-#
-#     starting_node_name = 'a'
-#     last_node_name = 'd'
-#
-#     shortest_path_nodes, shortest_path_maps = get_shortest_path(env_obj=env_obj,
-#                                                                 starting_node_name=starting_node_name,
-#                                                                 end_node_name=last_node_name)
-#
-#     print_shortest_path(shortest_path_nodes, shortest_path_maps)
-#

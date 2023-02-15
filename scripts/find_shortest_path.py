@@ -137,7 +137,7 @@ def a_star(nodes_list, starting_node_name, ending_node_name):
                     idx = closed_nodes.index(neighbour[0])
                     del closed_nodes[idx]
 
-                if neighbour[0] not in closed_nodes or neighbour[0] not in open_nodes:
+                if neighbour[0] not in closed_nodes and neighbour[0] not in open_nodes:
                     neighbour[0].via_node = current_node
                     neighbour[0].via_map = neighbour[1]
                     neighbour[0].g_cost = weight
@@ -161,7 +161,7 @@ def get_shortest_path(env_obj, starting_node_name, end_node_name):
         end_node_name: Node at which search should end
     Returns: A list of nodes, which is the shortest path.
     """
-    USE_A_STAR = False  # Set to False if Dijkstra is to be used
+    USE_A_STAR = True  # Set to False if Dijkstra is to be used
 
     if starting_node_name not in env_obj.nodes_names or end_node_name not in env_obj.nodes_names:
         print("The node does not exist!")

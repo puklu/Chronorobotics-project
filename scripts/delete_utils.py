@@ -20,11 +20,12 @@ def delete_a_map(env_name, map_name):
         maps_in_env = env_obj.map_metadata['maps_names'].copy()  # maps list in env before updating
         if map_name in maps_in_env:
 
-            CLIENT.remove_object(MAP_BUCKET, map_obj_name)  # MAP DELETED from the db
 
             idx = maps_in_env.index(map_name)  # index of the deleted map in map_metadata
+            start_node = env_obj.map_metadata['start_node'][idx]
+            end_node = env_obj.map_metadata['end_node'][idx]
 
-            # deleting all the data at the index corresponding to the deleted map
+            # deleting all the data from map_metadata at the index corresponding to the deleted map
             del env_obj.map_metadata['maps_names'][idx]
             del env_obj.map_metadata['distance'][idx]
             # del env_obj.map_metadata['distances'][idx]
@@ -33,53 +34,39 @@ def delete_a_map(env_name, map_name):
             del env_obj.map_metadata['times'][idx]
             del env_obj.map_metadata['timestamp'][idx]
 
-            # # updating the nodes of the environment
-            # env_obj.nodes = []
-            # for snode in env_obj.map_metadata['start_node']:
-            #     if snode not in env_obj.nodes:
-            #         env_obj.nodes.append(snode)
-            # for enode in env_obj.map_metadata['end_node']:
-            #     if enode not in env_obj.nodes:
-            #         env_obj.nodes.append(enode)
-
             # updating the neighbours of the environment
-            env_obj.nodes = []  # all the nodes of the graph have to created again to update
+            s_idx = env_obj.nodes.index(start_node)
+            e_idx = env_obj.nodes.index(end_node)
+
+            # index of end_node in the list of neighbours of start_node to update it
+            neighbours_of_start_node = env_obj.nodes[s_idx].neighbours
+            for m in range(len(neighbours_of_start_node)):
+                if neighbours_of_start_node[m][1] == map_name:
+                    idx_neigh_start_node = m
+                    break
+            del neighbours_of_start_node[idx_neigh_start_node]
+
+            # index of start_node in the list of neighbours of end_node to update it
+            neighbours_of_end_node = env_obj.nodes[e_idx].neighbours
+            for n in range(len(neighbours_of_end_node)):
+                if neighbours_of_end_node[n][1] == map_name:
+                    idx_neigh_end_node = n
+                    break
+            del neighbours_of_end_node[idx_neigh_end_node]
+
+            # if a node doesn't have any neighbours left, deleting the node
+            if len(neighbours_of_start_node) == 0:
+                del env_obj.nodes[s_idx]
+            if len(neighbours_of_end_node) == 0:
+                del env_obj.nodes[e_idx]
+
+            # update env.nodes_names
             env_obj.nodes_names = []
-            
-            remaining_maps_in_env = env_obj.map_metadata['maps_names'].copy()  # NEW maps list in env after updating
-            remaining_start_nodes = env_obj.map_metadata['start_node'].copy()
-            remaining_end_nodes = env_obj.map_metadata['end_node'].copy()
-            # remaining_env_name = env_obj.name
-            num_of_maps = len(remaining_maps_in_env)
+            for node in env_obj.nodes:
+                env_obj.nodes_names.append(node.key)
 
-            # CLIENT.remove_object(ENV_BUCKET, env_name)  # env object deleted
-
-            for k in range(num_of_maps):
-                map_upload(env_name=env_name,
-                           map_name=remaining_maps_in_env[k],
-                           start_node=remaining_start_nodes[k],
-                           end_node=remaining_end_nodes[k])
-                # s_node_name = env_obj.map_metadata['start_node'][k].key
-                # e_node_name = env_obj.map_metadata['end_node'][k].key
-                # dist = env_obj.map_metadata['distance'][k]
-                # m_name = env_obj.map_metadata['maps_names'][k]
-                # # # cost =
-                # env_obj.nodes_names.append(s_node_name)
-                # env_obj.nodes_names.append(e_node_name)
-                #
-                # env_obj = extract_map_metadata(env_obj, map_name=m_name, start_node_name=s_node_name, end_node_name=e_node_name)
-                #
-                # node1, node2 = create_graph(env_obj, start_node_name=s_node_name, end_node_name=e_node_name, map_name=m_name, distance=dist)
-                #
-                # env_obj.nodes.append(node1)
-                # env_obj.nodes.append(node2)
-
-
-            # if len(env_obj.nodes) > 0:  # if there are still nodes in the environment
-            #     env_upload(env_data=env_obj)  # uploading the updated env object
-            # else:  # if there are no nodes left after deleting the map, then delete the env_obj
-            #     CLIENT.remove_object(ENV_BUCKET, env_name)  # env object deleted
-
+            CLIENT.remove_object(MAP_BUCKET, map_obj_name)  # MAP DELETED from the db
+            env_upload(env_data=env_obj)  # uploading the updated env object
             print(f"Map: {map_name} deleted and environment: {env_name} updated")
 
         else:

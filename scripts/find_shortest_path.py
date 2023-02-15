@@ -163,6 +163,10 @@ def get_shortest_path(env_obj, starting_node_name, end_node_name):
     """
     USE_A_STAR = False  # Set to False if Dijkstra is to be used
 
+    if starting_node_name not in env_obj.nodes_names or end_node_name not in env_obj.nodes_names:
+        print("The node does not exist!")
+        return None, None
+
     if USE_A_STAR:
         shortest_path_nodes, shortest_path_maps = a_star(env_obj.nodes, starting_node_name, end_node_name)
     else:
@@ -178,6 +182,10 @@ def print_shortest_path(shortest_path_nodes_list, shortest_path_maps_list):
         shortest_path_maps_list: the sequence of maps for the shortest path
         shortest_path_nodes_list: List of nodes of shortest path
     """
+    if not shortest_path_nodes_list or not shortest_path_maps_list:
+        print("No path found!")
+        return
+
     print("The nodes of shortest path is: ")
     for node in shortest_path_nodes_list:
         print(node.key, end=' -> ')

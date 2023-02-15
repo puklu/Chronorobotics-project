@@ -16,7 +16,7 @@ def print_env_details(env_name):
 
     if meta_data_dict:
         print(f"env name: {env_obj.name}")
-        # print(f"nodes in the env: {env_obj.nodes}")
+        print(f"nodes in the env: {env_obj.nodes_names}")
         print(f"maps in the env: {meta_data_dict['maps_names']}")
         print(f"distance: {meta_data_dict['distance']}")
         print(f"timestamps: {meta_data_dict['timestamp']}")
@@ -30,7 +30,7 @@ def print_env_details(env_name):
         # for enode in meta_data_dict['end_node']:
         #     print(enode.key)
 
-        print(f"Neighbours of NODES are:")
+        print(f"Nodes and their neighbours are")
         for node in env_obj.nodes:
             # print(f"Weight and cost of the node are: {node.g_cost} | {node.h_cost}")
             print(f"Neighbours of {node.key} with distance are:", end=' ')

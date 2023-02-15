@@ -4,7 +4,7 @@ from upload_utils import batch_upload, map_upload, create_buckets, env_upload
 from fetch_utils import print_env_details, fetch_maps, fetch_environment
 from delete_utils import delete_a_map, delete_all_maps_of_an_environment
 from find_shortest_path import get_shortest_path, print_shortest_path
-from data_manipulation import  manipulated_map_upload
+from data_manipulation import manipulated_map_upload
 
 
 def main():
@@ -19,7 +19,8 @@ def main():
     parser.add_argument('-delmaps', help="Name of the env from which all maps are to be deleted")
     parser.add_argument('-shortest', help="Starting nodes for shortest path between two nodes", nargs='+')
 
-    parser.add_argument('-mani', help="To manipulate distance and cost between two nodes when uploading maps", nargs='+')
+    parser.add_argument('-mani', help="To manipulate distance and cost between two nodes when uploading maps",
+                        nargs='+')
 
     args = parser.parse_args()
 
@@ -146,8 +147,9 @@ def main():
         print_shortest_path(shortest_path_nodes, shortest_path_maps)
 
         # # fetching the maps corresponding to shortest path
-        # for map_ in shortest_path_maps:
-        #     fetch_maps(args.e, map_)
+        # if shortest_path_maps:
+        #     for map_ in shortest_path_maps:
+        #         fetch_maps(args.e, map_)
 
 
     # ONLY FOR TESTING. SHOULD NOT BE CALLED OTHERWISE!!

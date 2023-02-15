@@ -83,8 +83,8 @@ def manipulated_map_upload(env_name, map_name, start_node, end_node, manipulated
 
     # zipping the map
     location_of_map = zip_the_map(env_name=env_name,
-                                           map_name=map_name,
-                                           path_to_directory_containing_map_directory=path_to_directory_containing_map_directory)
+                                  map_name=map_name,
+                                  path_to_directory_containing_map_directory=path_to_directory_containing_map_directory)
 
     if location_of_map is None:  # map doesn't exist in local
         return

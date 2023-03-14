@@ -1,5 +1,6 @@
 from datetime import datetime
 from zipfile import ZipFile
+import tzlocal
 
 from constants import ROOT, OBJECTS_PATH
 from load_map import load_map
@@ -33,12 +34,17 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
 
     '''
         Calculating timestamp for the map
-        The middle point of times is assumed to be the timestamp for the map
+        The starting point of times is assumed to be the timestamp for the map
     '''
     length_of_times = len(env_obj.map_metadata['times'][0][0])
-    average_timestamp = int(env_obj.map_metadata['times'][0][0][int(length_of_times / 2)].to_time())
-    timestamp = datetime.utcfromtimestamp(average_timestamp).strftime('%Y-%m-%d %H:%M:%S')
-    env_obj.map_metadata['timestamp'].append(timestamp)
+    starting_timestamp = times[0][0].to_time()
+    # average_timestamp = int(env_obj.map_metadata['times'][0][0][int(length_of_times / 2)].to_time())
+
+    local_timezone = tzlocal.get_localzone()  # get pytz timezone
+    local_time = datetime.fromtimestamp(starting_timestamp, local_timezone).strftime('%Y-%m-%d %H:%M:%S')
+    # local_time = datetime.utcfromtimestamp(starting_timestamp).strftime('%Y-%m-%d %H:%M:%S')
+
+    env_obj.map_metadata['timestamp'].append((starting_timestamp, local_time))
 
 
     # creating Nodes

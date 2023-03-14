@@ -1,8 +1,10 @@
 import os
-from constants import FETCHED_MAPS_PATH, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, ENV_BUCKET, MAP_BUCKET,CLIENT
 from zipfile import ZipFile
 from copyreg import pickle
 import pickle
+
+from constants import FETCHED_MAPS_PATH, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, ENV_BUCKET, MAP_BUCKET, CLIENT
+from cost_calculation import suitable_timestamps, time_cost_calc
 
 
 def print_env_details(env_name):
@@ -20,6 +22,8 @@ def print_env_details(env_name):
         print(f"maps in the env: {meta_data_dict['maps_names']}")
         print(f"distance: {meta_data_dict['distance']}")
         print(f"timestamps: {meta_data_dict['timestamp']}")
+        print(f"times: {meta_data_dict['times'][0][0][0]}")
+        print(f"times: {meta_data_dict['times'][0][0][0].to_time()}")
 
         # print(f"START NODES")
         # for snode in meta_data_dict['start_node']:
@@ -62,14 +66,65 @@ def fetch_map_metadata(env_obj):
         return None
 
 
+def fetch_maps_by_time_cost(env_name, periodicities):
+    env_obj = fetch_environment(env_name)  # fetching the env object
+    env_map_metadata = fetch_map_metadata(env_obj)
+    suitable_maps = []
+    # suitable_times = suitable_timestamps(periodicities)
+    time_costs = []
+    map_timestamps = env_map_metadata['timestamp']
+
+    for map_timestamp in map_timestamps:
+        cost_ = time_cost_calc(map_timestamp[0], periodicities)
+        time_costs.append(cost_)
+
+    ten_least_costs = time_costs.copy()
+    ten_least_costs.sort()
+    if len(ten_least_costs) >= 10:
+        ten_least_costs = ten_least_costs[0:10]
+
+    # maps to fetch
+    for i in range(len(ten_least_costs)):
+        # TODO: ACTUAL FETCHING OF THE MAP AFTER COMPARING FEATURES
+        map_idx = time_costs.index(ten_least_costs[i])
+        map_name = env_map_metadata['maps_names'][map_idx]
+        print(map_name)
+
+
+def fetch_maps_according_to_time(env_name, periodicities):
+    # TODO: MIGHT HAVE TO BE REPLACED BY THE METHOD ABOVE
+    env_obj = fetch_environment(env_name)  # fetching the env object
+    env_map_metadata = fetch_map_metadata(env_obj)
+    suitable_maps = []
+    suitable_times = suitable_timestamps(periodicities)
+
+    # print(suitable_times)
+
+    for suitable_time in suitable_times:
+        for timestamp in env_map_metadata['timestamp']:
+
+            if suitable_time[0] < timestamp[0] < suitable_time[1]:
+                map_idx = env_map_metadata['timestamp'].index(timestamp)
+                suitable_maps.append(env_map_metadata['maps_names'][map_idx])
+                # print(env_map_metadata['maps_names'][map_idx])
+
+    # fetching maps form db
+    if len(suitable_maps) == 0:
+        print("No suitable maps according to time!")
+        return
+    else:
+        for map_ in suitable_maps:
+            fetch_maps(env_name, map_)
+
+
 def fetch_maps(env, map_to_fetch=None):
     """
-    Fetches maps into ~.ros/  for an environment
+    Fetches a map into ~.ros/  for an environment
     Args:
         map_to_fetch: name of the map to be fetched
         env: Environment for which maps are to be fetched
     Returns:
-        map(s) to ~.ros/
+        downloads the map to ~.ros/
     """
     # check if the map exists on local
     local_path = f"{FETCHED_MAPS_PATH}/{map_to_fetch}"

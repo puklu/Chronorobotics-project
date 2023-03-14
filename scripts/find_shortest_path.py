@@ -167,17 +167,17 @@ def get_shortest_path(env_obj, starting_node_name, end_node_name):
     """
     USE_A_STAR = True  # Set to False if Dijkstra is to be used
 
-    if starting_node_name not in env_obj.nodes_names and end_node_name not in env_obj.nodes_names:
-        print(f"The nodes {starting_node_name} and {end_node_name} do not exist!")
-        return None, None
-
-    elif starting_node_name not in env_obj.nodes_names:
-        print(f"The node {starting_node_name} does not exist!")
-        return None, None
-
-    elif end_node_name not in env_obj.nodes_names:
-        print(f"The node {end_node_name} does not exist!")
-        return None, None
+    # if the starting or ending node do not exist in the graph
+    if starting_node_name not in env_obj.nodes_names or end_node_name not in env_obj.nodes_names:
+        if starting_node_name not in env_obj.nodes_names and end_node_name not in env_obj.nodes_names:
+            print(f"The nodes {starting_node_name} and {end_node_name} do not exist!")
+            return None, None
+        elif starting_node_name not in env_obj.nodes_names:
+            print(f"The node {starting_node_name} does not exist!")
+            return None, None
+        elif end_node_name not in env_obj.nodes_names:
+            print(f"The node {end_node_name} does not exist!")
+            return None, None
 
     if USE_A_STAR:
         shortest_path_nodes, shortest_path_maps = a_star(env_obj.nodes, starting_node_name, end_node_name)

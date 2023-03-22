@@ -6,7 +6,7 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
 
                 
                  
-1. cd into ```project/scripts/```.
+1. cd into ```project/scripts/Map_management/```.
 
 
 2. To upload a particular map for an environment from `~/.ros`,

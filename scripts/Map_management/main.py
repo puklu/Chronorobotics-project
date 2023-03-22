@@ -1,11 +1,12 @@
 import argparse
 
-from upload_utils import batch_upload, map_upload, create_buckets, env_upload
-from fetch_utils import print_env_details, fetch_maps, fetch_environment, fetch_maps_according_to_time, \
-    fetch_maps_by_time_cost
+from upload_utils import batch_upload, map_upload, create_buckets, env_upload, first_image_upload
+from fetch_utils import print_env_details, fetch_maps, fetch_environment, fetch_maps_by_time_cost
 from delete_utils import delete_a_map, delete_all_maps_of_an_environment
 from find_shortest_path import get_shortest_path, print_shortest_path
 from data_manipulation import manipulated_map_upload
+from visualise import visualise_similarity_matrix, visualise_fft_for_env
+from cost_calculation import image_similarity_matrix_update
 
 
 def main():
@@ -40,7 +41,11 @@ def main():
         # batch_upload()  # upload to db # TODO: SHOULD BE UNCOMMENTED AFTER TESTING IS DONE. THE FOLLOWING LINES SHOULD BE REMOVED.
         # find_map_according_to_time([3600, 86400, 604800, 31536000])
         # fetch_maps_according_to_time('env2', [3600, 86400, 604800, 2592000, 31536000])
-        fetch_maps_by_time_cost('env3', [3600, 86400, 604800, 2592000, 31536000])
+        # fetch_maps_by_time_cost('env0', [3600])
+        # image_similarity_matrix_update('env', 'ddd')
+        visualise_similarity_matrix('env0')
+        # visualise_fft_for_env('env0')
+
 
     # delete all maps from an environment
     elif args.delmaps \

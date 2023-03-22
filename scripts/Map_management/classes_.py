@@ -1,6 +1,7 @@
 from copyreg import pickle
 import pickle
 from constants import TO_UPLOAD_PATH
+import numpy as np
 
 
 class Environment:
@@ -10,6 +11,7 @@ class Environment:
         self.nodes = []
         self.nodes_names = []
         self.edges = []
+        self.similarity_matrix = []
         self.map_metadata = {'maps_names': [],
                              'images': [],
                              'trans': [],

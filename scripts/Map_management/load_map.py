@@ -4,7 +4,6 @@ Author: Zdenek Rozsypalek
 
 import numpy as np
 import os
-# from classes_ import Features
 
 
 class Features:

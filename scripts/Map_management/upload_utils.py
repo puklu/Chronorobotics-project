@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from zipfile import ZipFile
 
-from constants import TO_UPLOAD_PATH, OBJECTS_PATH, ENV_BUCKET, MAP_BUCKET, DOT_ROS_PATH, CLIENT
+from constants import TO_UPLOAD_PATH, OBJECTS_PATH, ENV_BUCKET, MAP_BUCKET, FIRST_IMAGE_BUCKET, DOT_ROS_PATH, CLIENT
 from classes_ import Environment
 from fetch_utils import fetch_environment
 from meta_data_extraction import extract_map_metadata
@@ -27,6 +27,12 @@ def create_buckets():
     # else:
     #     print(f"Bucket {ENV_BUCKET} already exists")
 
+    found = CLIENT.bucket_exists(FIRST_IMAGE_BUCKET)
+    if not found:
+        CLIENT.make_bucket(FIRST_IMAGE_BUCKET)
+        print(f"Bucket {FIRST_IMAGE_BUCKET} created")
+    # else:
+    #     print(f"Bucket {ENV_BUCKET} already exists")
 
 def env_upload(env_data):
     """
@@ -34,10 +40,8 @@ def env_upload(env_data):
     Args:
         A object instance of class Environment   
     """
-
     if not TO_UPLOAD_PATH.is_dir():  # Creating the directory if it doesn't exist
         TO_UPLOAD_PATH.mkdir(parents=True, exist_ok=True)
-
     obj_name = env_data.name
 
     env_data.pickle_env()
@@ -45,6 +49,8 @@ def env_upload(env_data):
     # env object is always updated in db even if it already exists
     CLIENT.fput_object(bucket_name=ENV_BUCKET, object_name=obj_name,
                        file_path=str(TO_UPLOAD_PATH) + "/" + 'pickled_env.pkl')
+
+
     print(f"Environment {obj_name} uploaded to {ENV_BUCKET} bucket")
 
 
@@ -127,6 +133,9 @@ def map_upload(env_name, map_name, start_node, end_node, path_to_directory_conta
     if location_of_map is None:  # map doesn't exist in local
         return
 
+    # uploading the first image of the map
+    first_image_upload(env_name, map_name)
+
     # Fetch env obj from db, append to it, then replace the one in db
     env_obj = fetch_environment(env_name)
     if env_obj:  # if the env exists in db then update it
@@ -144,8 +153,10 @@ def map_upload(env_name, map_name, start_node, end_node, path_to_directory_conta
     else:
         map_path = f"{path_to_directory_containing_map_directory}/{env_name}.{map_name}.zip"  # path of the zipped map that will be uploaded
 
+
     # Uploading the map
     try:
+
         statobj = CLIENT.stat_object(MAP_BUCKET, map_obj_name, ssec=None, version_id=None, extra_query_params=None)
         print(f"{map_obj_name} already exists in {MAP_BUCKET} bucket")
 
@@ -154,11 +165,46 @@ def map_upload(env_name, map_name, start_node, end_node, path_to_directory_conta
         env_upload(env_data=env_obj)  # uploading the env obj
         print(f"Map {map_obj_name} uploaded to {MAP_BUCKET} bucket")
 
+
     # Delete the zipped map from local
     if path_to_directory_containing_map_directory is None:
         os.remove(f"{str(DOT_ROS_PATH)}/{env_name}.{map_name}.zip")
     else:
         os.remove(f"{path_to_directory_containing_map_directory}/{env_name}.{map_name}.zip")
+
+
+def first_image_upload(env_name, map_name, path_to_directory_containing_map_directory=None):
+    """
+    Uploads the first image of a map to first-image bucket in the db
+    Args:
+        env_name: name of the environment to which the map belongs
+        map_name: name of the map
+        path_to_directory_containing_map_directory: path to the map on local
+    """
+    image_obj_name = f"{env_name}.{map_name}.jpg"
+    map_path = Path(f"{DOT_ROS_PATH}/{map_name}")
+
+    # finding the first image for the map when uploading
+    if not map_path.is_dir():
+        print(f"The map {map_name} doesn't exist in local")
+        return None
+
+    images = []
+    for path, directories, files in os.walk(map_path):
+        for file in files:
+            if file.endswith(".jpg"):
+                images.append(file)
+    images.sort()
+    first_image_name = images[0]
+    first_image_path = f"{DOT_ROS_PATH}/{map_name}/{first_image_name}"
+
+    # Uploading the first image
+    try:
+        statobj = CLIENT.stat_object(FIRST_IMAGE_BUCKET, image_obj_name, ssec=None, version_id=None, extra_query_params=None)
+        # print(f"{image_obj_name} already exists in {FIRST_IMAGE_BUCKET} bucket")
+    except:
+        CLIENT.fput_object(bucket_name=FIRST_IMAGE_BUCKET, object_name=image_obj_name, file_path=first_image_path)
+        # print(f"Image {image_obj_name} uploaded to {FIRST_IMAGE_BUCKET} bucket")
 
 
 def batch_upload():

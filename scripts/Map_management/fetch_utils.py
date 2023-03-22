@@ -3,8 +3,8 @@ from zipfile import ZipFile
 from copyreg import pickle
 import pickle
 
-from constants import FETCHED_MAPS_PATH, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, ENV_BUCKET, MAP_BUCKET, CLIENT
-from cost_calculation import suitable_timestamps, time_cost_calc
+from constants import FETCHED_MAPS_PATH, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, ENV_BUCKET, MAP_BUCKET, CLIENT, FIRST_IMAGE_BUCKET, IMAGES_PATH
+from cost_calculation import time_cost_calc
 
 
 def print_env_details(env_name):
@@ -16,14 +16,14 @@ def print_env_details(env_name):
     env_obj = fetch_environment(env_name)  # fetching the env object
     meta_data_dict = fetch_map_metadata(env_obj)  # getting map metadata from it
 
+    # print(f"Similarity matrix: {env_obj.similarity_matrix}")
+
     if meta_data_dict:
-        print(f"env name: {env_obj.name}")
-        print(f"nodes in the env: {env_obj.nodes_names}")
+        # print(f"env name: {env_obj.name}")
+        # print(f"nodes in the env: {env_obj.nodes_names}")
         print(f"maps in the env: {meta_data_dict['maps_names']}")
-        print(f"distance: {meta_data_dict['distance']}")
+        # print(f"distance: {meta_data_dict['distance']}")
         print(f"timestamps: {meta_data_dict['timestamp']}")
-        print(f"times: {meta_data_dict['times'][0][0][0]}")
-        print(f"times: {meta_data_dict['times'][0][0][0].to_time()}")
 
         # print(f"START NODES")
         # for snode in meta_data_dict['start_node']:
@@ -42,9 +42,7 @@ def print_env_details(env_name):
                 print(f"{neighbour[0].key}: {neighbour[2]}", end=' | ')
             print()
 
-        # print(env_obj.map_metadata)
-        # for node in env_obj.nodes:
-        #     print()
+
 
     else:
         print(f"metadata doesn't exist")
@@ -68,53 +66,42 @@ def fetch_map_metadata(env_obj):
 
 def fetch_maps_by_time_cost(env_name, periodicities):
     env_obj = fetch_environment(env_name)  # fetching the env object
+
+    if env_obj is None:
+        print(f"{env_name} doesn't exist!")
+        return
+
     env_map_metadata = fetch_map_metadata(env_obj)
     suitable_maps = []
     # suitable_times = suitable_timestamps(periodicities)
     time_costs = []
     map_timestamps = env_map_metadata['timestamp']
 
-    for map_timestamp in map_timestamps:
-        cost_ = time_cost_calc(map_timestamp[0], periodicities)
-        time_costs.append(cost_)
+    maps_timestamps = [map_timestamp[0] for map_timestamp in map_timestamps]
 
-    ten_least_costs = time_costs.copy()
-    ten_least_costs.sort()
-    if len(ten_least_costs) >= 10:
-        ten_least_costs = ten_least_costs[0:10]
+    # TESTING DATA , SHOULD BE COMMENTED OUT TO WORK ON ACTUAL DATA
+    # maps_timestamps = [1678863600, 1678864500, 1678865400, 1678866300, 1678867200, 1678868100, 1678869000, 1678869900,
+    #                    1678870800, 1678871700, 1678872600, 1678892400, 1678914000, 1678950000, 1647327600]
+    #                     Mar 15 2023 08:00:00,
+    #                     Mar 15 2023 08:15:00,
+    #                     Mar 15 2023 08:30:00
+    #                     Mar 15 2023 08:45:00
+    #                     Mar 15 2023 09:00:00,
+    #                     Mar 15 2023 09:15:00
+    #                     Mar 15 2023 09:30:00,
+    #                     Mar 15 2023 09:45:00
+    #                     Mar 15 2023 10:00:00
+    #                     Mar 15 2023 10:15:00
+    #                     Mar 15 2023 10:30:00,
+    #                     Mar 15 2023 16:00:00
+    #                     Mar 15 2023 22:00:00
+    #                     Mar 16 2023 08:00:00
+    #                     Mar 15 2022 08:00:00
 
-    # maps to fetch
-    for i in range(len(ten_least_costs)):
-        # TODO: ACTUAL FETCHING OF THE MAP AFTER COMPARING FEATURES
-        map_idx = time_costs.index(ten_least_costs[i])
-        map_name = env_map_metadata['maps_names'][map_idx]
-        print(map_name)
+    cost_ = time_cost_calc(maps_timestamps, periodicities, 1678863600)
 
+    return cost_
 
-def fetch_maps_according_to_time(env_name, periodicities):
-    # TODO: MIGHT HAVE TO BE REPLACED BY THE METHOD ABOVE
-    env_obj = fetch_environment(env_name)  # fetching the env object
-    env_map_metadata = fetch_map_metadata(env_obj)
-    suitable_maps = []
-    suitable_times = suitable_timestamps(periodicities)
-
-    # print(suitable_times)
-
-    for suitable_time in suitable_times:
-        for timestamp in env_map_metadata['timestamp']:
-
-            if suitable_time[0] < timestamp[0] < suitable_time[1]:
-                map_idx = env_map_metadata['timestamp'].index(timestamp)
-                suitable_maps.append(env_map_metadata['maps_names'][map_idx])
-                # print(env_map_metadata['maps_names'][map_idx])
-
-    # fetching maps form db
-    if len(suitable_maps) == 0:
-        print("No suitable maps according to time!")
-        return
-    else:
-        for map_ in suitable_maps:
-            fetch_maps(env_name, map_)
 
 
 def fetch_maps(env, map_to_fetch=None):
@@ -215,3 +202,31 @@ def fetch_environment(env):
 
     except:
         return
+
+
+def fetch_first_images(env_obj):
+
+    if not IMAGES_PATH.is_dir():  # Creating the directory if it doesn't exist
+        IMAGES_PATH.mkdir(parents=True, exist_ok=True)
+
+    images_to_fetch = []
+    env_name = env_obj.name
+
+    maps_names = env_obj.map_metadata['maps_names']
+
+    for map_name in maps_names:
+        images_to_fetch.append(f"{env_name}.{map_name}.jpg")
+
+    for image in images_to_fetch:
+        try:
+            CLIENT.fget_object(FIRST_IMAGE_BUCKET, image, file_path=f"{IMAGES_PATH}/{image}")
+            print(f"Image: {image} downloaded to {IMAGES_PATH} ")
+        except:
+            print(f"Image: {image} not found in {FIRST_IMAGE_BUCKET} bucket")
+
+
+
+
+
+
+

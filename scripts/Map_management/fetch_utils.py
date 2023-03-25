@@ -2,47 +2,59 @@ import os
 from zipfile import ZipFile
 from copyreg import pickle
 import pickle
+import json
 
-from constants import FETCHED_MAPS_PATH, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, ENV_BUCKET, MAP_BUCKET, CLIENT, FIRST_IMAGE_BUCKET, IMAGES_PATH
+from constants import FETCHED_MAPS_PATH, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, ENV_BUCKET, MAP_BUCKET, CLIENT, FIRST_IMAGE_BUCKET, IMAGES_PATH, RESULTS_PATH
 from cost_calculation import time_cost_calc
 
 
 def print_env_details(env_name):
     """
-    Prints the contents of env class (for easy testing)
+    Saves  the contents of env class as JSON file in results directory
     Args:
         env_name: name of the environment for which details need to be printed
      """
     env_obj = fetch_environment(env_name)  # fetching the env object
     meta_data_dict = fetch_map_metadata(env_obj)  # getting map metadata from it
 
-    # print(f"Similarity matrix: {env_obj.similarity_matrix}")
+    # a dictionary to save all data as JSON
+    env_details = {"neighbours": [],
+                   "start_nodes": [],
+                   "end_nodes": [],
+                   "Similarity_matrix": env_obj.similarity_matrix.tolist()}
 
     if meta_data_dict:
+        env_details["name"] = env_obj.name
+        env_details["nodes_names"] = env_obj.nodes_names
+        env_details["maps_names"] = meta_data_dict['maps_names']
+        env_details["distance"] = meta_data_dict['distance']
+        env_details["timestamp"] = meta_data_dict['timestamp']
+
         # print(f"env name: {env_obj.name}")
         # print(f"nodes in the env: {env_obj.nodes_names}")
-        print(f"maps in the env: {meta_data_dict['maps_names']}")
+        # print(f"maps in the env: {meta_data_dict['maps_names']}")
         # print(f"distance: {meta_data_dict['distance']}")
-        print(f"timestamps: {meta_data_dict['timestamp']}")
+        # print(f"timestamps: {meta_data_dict['timestamp']}")
 
-        # print(f"START NODES")
-        # for snode in meta_data_dict['start_node']:
-        #     print(snode.key)
-        #
-        # print()
-        # print(f"END NODES")
-        # for enode in meta_data_dict['end_node']:
-        #     print(enode.key)
-
-        print(f"Nodes and their neighbours are")
+        # print(f"Nodes and their neighbours are")
         for node in env_obj.nodes:
+            neighbours = {}
+
             # print(f"Weight and cost of the node are: {node.g_cost} | {node.h_cost}")
-            print(f"Neighbours of {node.key} with distance are:", end=' ')
+            # print(f"Neighbours of {node.key} with distance are:", end=' ')
             for neighbour in node.neighbours:
-                print(f"{neighbour[0].key}: {neighbour[2]}", end=' | ')
-            print()
+                if node.key in neighbours:
+                    neighbours[f"{node.key}"].append([neighbour[0].key, neighbour[2], neighbour[1]])
+                else:
+                    neighbours[f"{node.key}"] = [[neighbour[0].key, neighbour[2], neighbour[1]]]
 
+                # print(f"{neighbour[0].key}: {neighbour[2]}", end=' | ')
+            # print()
 
+            env_details["neighbours"].append(neighbours)
+
+        with open(f"{RESULTS_PATH}/env_details.json", "w") as f:
+            json.dump(env_details, f)
 
     else:
         print(f"metadata doesn't exist")
@@ -65,6 +77,11 @@ def fetch_map_metadata(env_obj):
 
 
 def fetch_maps_by_time_cost(env_name, periodicities):
+    """
+    TODO: USELESS NOW PROBABLY
+
+    """
+
     env_obj = fetch_environment(env_name)  # fetching the env object
 
     if env_obj is None:

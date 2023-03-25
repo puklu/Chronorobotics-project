@@ -1,15 +1,16 @@
-import os
 import sys
+import csv
 
 import numpy as np
 from numpy import sin, pi, cos
 from scipy.special import softmax
+import pandas as pd
 from PIL import Image
 import tzlocal
 from datetime import datetime
 
 from visualise import pyplot_time_cost_line_plot, seaborn_time_cost_line_plot, visualise_heatmap, visualise_fft
-from constants import CURRENT_SYSTEM_TIME, IMAGES_PATH, SIAMESE_NETWORK_PATH, ROOT, PATH_TO_SIAMESE_MODEL
+from constants import CURRENT_SYSTEM_TIME, IMAGES_PATH, SIAMESE_NETWORK_PATH, PATH_TO_SIAMESE_MODEL, RESULTS_PATH
 
 sys.path.append(str(SIAMESE_NETWORK_PATH))
 sys.path.append('../')
@@ -17,29 +18,74 @@ sys.path.append('../')
 from Siamese_network_image_alignment.demo import run_demo
 
 # beta for softmax ---
-BETA = 1/50
-VISUALIZE_DATA = True
+BETA = 1 / 50
+SAVE_PLOTS = True
 
 
-def time_cost_calc(maps_timestamps, periodicities, current_time=CURRENT_SYSTEM_TIME, is_plot=VISUALIZE_DATA):
+def final_cost_calc(env_name, periodicities, current_time=CURRENT_SYSTEM_TIME):
+    """
+
+    Args:
+        env_name:
+        periodicities:
+        current_time:
+
+    Returns:
+
+    """
+    time_cost = time_cost_calc(env_name, periodicities, current_time)  # final_cost = {map_name: [map_timestamp, cost]}
+    final_cost = time_cost.copy()
+
+    for map_ in time_cost:
+        time_cost_for_map = time_cost[map_][0]
+        distance = time_cost[map_][0]
+        final_calculated_cost = 0 * distance + 1 * time_cost_for_map # TODO: Needs to be decided
+        final_cost[map_].append(final_calculated_cost)
+
+    # print(final_cost)
+
+    return final_cost
+
+
+def time_cost_calc(env_name, periodicities, current_time=CURRENT_SYSTEM_TIME, save_plot=SAVE_PLOTS):
     """
     Calculates the cost based on the timestamp (unix time) for a map.
     Args:
+        env_name: name of the environment for which costs are to be calculated
         periodicities: the significant frequencies present in the maps for an environment
-        maps_timestamps: the timestamps of all the maps of the environment
         current_time (optional): Current time,to be provided in case the cost is to be calculated w.r.t to some
         other time instead of current time.
-        is_plot: Set to True to plot the cost
+        save_plot: Set to True to plot the cost
     Returns:
         time_cost
     """
+
+    local_timezone = tzlocal.get_localzone()  # get pytz timezone
+
+    from fetch_utils import fetch_environment, fetch_map_metadata
+    env_obj = fetch_environment(env_name)  # fetching the env object
+
+    if env_obj is None:
+        print(f"{env_name} doesn't exist!")
+        return
+
+    env_map_metadata = fetch_map_metadata(env_obj)
+    map_timestamps = env_map_metadata['timestamp']
+    maps_names = env_map_metadata['maps_names']
+    distance = env_map_metadata['distance']
+    maps_timestamps = [map_timestamp[0] for map_timestamp in map_timestamps]
+
     periodicities.sort()
-    maps_timestamps.sort()
+    # maps_timestamps.sort()
 
     N = len(periodicities)
     M = len(maps_timestamps)
 
-    maps_timestamps = np.asarray(maps_timestamps)
+    time_costs = {}
+    for map_name in maps_names:
+        time_costs[map_name] = []
+
+    maps_timestamps = np.asarray(maps_timestamps, dtype=int)  # TODO MAYBE dtype SHOULD BE FLOAT??
     maps_timestamps = np.expand_dims(maps_timestamps, axis=-1)
     maps_timestamps = maps_timestamps.reshape(M, 1)
 
@@ -47,35 +93,60 @@ def time_cost_calc(maps_timestamps, periodicities, current_time=CURRENT_SYSTEM_T
     periodicities = np.expand_dims(periodicities, axis=-1)
     periodicities = periodicities.reshape(1, N)
 
-    periodicities_sum = sum(periodicities)
     time_difference = maps_timestamps - current_time
 
     omega = 2 * pi / periodicities
 
     # cosines = cos(maps_timestamps * omega - current_time)
-    cosines = cos(time_difference * omega)
-    # cosines = 0.5*cosines
-    # cosines = abs(0.5*cos(CURRENT_SYSTEM_TIME) - cosines)
 
-    cost = cosines.sum(axis=1)
+    cosines = -cos(time_difference * omega) + 1  # add 1 to make the values positive
 
-    # plotting
-    if is_plot:
-        local_timezone = tzlocal.get_localzone()  # get pytz timezone
+    # cosines = (1/(2*N))*cosines
+
+    cost = (1 / (2 * N)) * cosines.sum(axis=1)  # diving by 2N to normalize
+
+    for i in range(M):
+        map_timestamp_local = datetime.fromtimestamp(maps_timestamps[i][0], local_timezone).strftime(
+            '%Y-%m-%d %H:%M:%S')
+        time_costs[maps_names[i]] = [cost[i], distance[i], maps_timestamps[i][0], map_timestamp_local]
+
+    # PLOTTING THE COST
+    if save_plot:
         current_time_local = datetime.fromtimestamp(current_time, local_timezone).strftime('%Y-%m-%d %H:%M:%S')
-
+        maps_timestamps = []
         maps_timestamps_local = []
-        for i in range(len(maps_timestamps)):
-            maps_timestamps_local.append(
-                datetime.fromtimestamp(maps_timestamps[i][0], local_timezone).strftime('%Y-%m-%d %H:%M:%S'))
+        costs = []
+
+        sorted_by_timestamp = sorted(time_costs.items(), key=lambda x: x[1][2])
+
+        for item_ in sorted_by_timestamp:
+            maps_timestamps.append(item_[1][2])
+            maps_timestamps_local.append((item_[1][3]))
+            costs.append(item_[1][0])
+
+        # data = pd.DataFrame({'x': maps_timestamps_local, 'y': cost})
+        # seaborn_time_cost_line_plot(maps_timestamps_ticks_local, cost_for_xticks, current_time_local)
 
         # pyplot_time_cost_line_plot(maps_timestamps_local, cost, current_time_local)
-        seaborn_time_cost_line_plot(maps_timestamps_local, cost, current_time_local)
+        seaborn_time_cost_line_plot(maps_timestamps_local, costs, maps_timestamps_local, current_time_local)
+        # seaborn_time_cost_line_plot(maps_timestamps[:,0], costs, maps_timestamps_local, current_time_local)
 
-    return cost
+    # saving the dictionary as a CSV file
+    # Open a file in write mode
+    with open(f"{RESULTS_PATH}/time_costs.csv", "w", newline='') as f:
+        writer = csv.writer(f)
+
+        # Write the header row
+        writer.writerow(["map name", "time_cost | distance | timestamp | timestamp_local"])
+
+        # Write the data rows
+        for key, value in time_costs.items():
+            writer.writerow([key, value])
+
+    return time_costs
 
 
-def image_similarity_matrix_update(similarity_matrix, images_names, is_plot=VISUALIZE_DATA):
+def image_similarity_matrix_update(similarity_matrix, images_names, save_plot=SAVE_PLOTS):
     """
     When a new map is uploaded for an environment, the similarity matrix needs to be calculated again for the environment.
     This method takes in the current similarity matrix of the environment, and then updates it taking in consideration the
@@ -137,7 +208,7 @@ def image_similarity_matrix_update(similarity_matrix, images_names, is_plot=VISU
 
     magnitude_spectrum = calculate_fft(similarity_matrix)
 
-    if is_plot:
+    if save_plot:
         map_names = []
         for image in names_of_images:
             env_name, map_name, _ = image.split(".")
@@ -147,11 +218,10 @@ def image_similarity_matrix_update(similarity_matrix, images_names, is_plot=VISU
         visualise_heatmap(similarity_matrix, map_names, map_names, 'Similarity matrix')
         visualise_fft(magnitude_spectrum)
 
-
     return similarity_matrix
 
 
-def image_similarity_matrix_calc(images_names, is_plot=VISUALIZE_DATA):
+def image_similarity_matrix_calc(images_names, is_plot=SAVE_PLOTS):
     """
     Calculates the similarity matrix of images present in <IMAGES_PATH>
     Args:
@@ -220,7 +290,3 @@ def calculate_fft(data):
     magnitude_spectrum = 20 * np.log(np.abs(fft_data))
 
     return magnitude_spectrum
-
-
-
-

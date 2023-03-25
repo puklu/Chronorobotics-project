@@ -13,7 +13,7 @@ class Node:
         self.neighbours = []
 
 
-def create_graph(env_obj, start_node_name, end_node_name, map_name, distance, cost=0):
+def create_graph(env_obj, start_node_name, end_node_name, map_name, distance):
     """
     Creates instances of Node class and adds the neighbour and path weight information for the nodes
     Args:
@@ -41,13 +41,11 @@ def create_graph(env_obj, start_node_name, end_node_name, map_name, distance, co
         end_node = env_obj.nodes[e_idx]
 
     # add the neighbour data
-    start_node.neighbours.append([end_node, map_name, distance, cost])
-    end_node.neighbours.append([start_node, map_name, distance, cost])
+    start_node.neighbours.append([end_node, map_name, distance])
+    end_node.neighbours.append([start_node, map_name, distance])
 
     # setting the weights to a big number for shortest path finding algorithm
     start_node.g_cost = 10000000
     end_node.g_cost = 10000000
-    # start_node.h_cost = 10000000
-    # end_node.h_cost = 10000000
 
     return start_node, end_node

@@ -77,7 +77,7 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     # ---------------------------------------------------------------------
 
     # # creating Nodes ------------------------------------------------------
-    start_node, end_node = create_graph(env_obj, start_node_name, end_node_name, map_name, distance)  # , cost)
+    start_node, end_node = create_graph(env_obj, start_node_name, end_node_name, map_name, distance)
 
     env_obj.map_metadata['start_node'].append(start_node)
     env_obj.map_metadata['end_node'].append(end_node)

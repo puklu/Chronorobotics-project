@@ -1,3 +1,5 @@
+from cost_calculation import final_cost_calc
+
 def find_shortest_path(node, starting_node, shortest_path_nodes, shortest_path_maps):
     """
     To traceback the path from end node to starting node using via
@@ -83,7 +85,7 @@ def dijkstra(nodes_list, starting_node_name, ending_node_name):
     return shortest_path_nodes, shortest_path_maps
 
 
-def a_star(nodes_list, starting_node_name, ending_node_name):
+def a_star(nodes_list, starting_node_name, ending_node_name, final_cost):
     """
     Finds the shortest path between two nodes using A-star algorithm
     Args:
@@ -131,13 +133,16 @@ def a_star(nodes_list, starting_node_name, ending_node_name):
 
         for neighbour in current_node.neighbours:
             if neighbour[0] not in closed_nodes:
-                weight = current_node.g_cost + neighbour[2]
-                cost = weight + neighbour[3]
+                weight = current_node.g_cost # + neighbour[2]
+                # cost = weight + neighbour[3]
 
-                if neighbour[0] in open_nodes and cost < neighbour[0].g_cost:
+                # # final_cost = {map_name: [cost, distance, map_timestamp, map_timestamp_local, final_cost]}
+                cost = weight + final_cost[neighbour[1]][-1]     # neighbour[1] <- map_name
+
+                if neighbour[0] in open_nodes and cost < neighbour[0].f_cost:
                     idx = open_nodes.index(neighbour[0])
                     del open_nodes[idx]
-                if neighbour[0] in closed_nodes and cost < neighbour[0].g_cost:
+                if neighbour[0] in closed_nodes and cost < neighbour[0].f_cost:
                     idx = closed_nodes.index(neighbour[0])
                     del closed_nodes[idx]
 
@@ -146,6 +151,7 @@ def a_star(nodes_list, starting_node_name, ending_node_name):
                     neighbour[0].via_map = neighbour[1]
                     neighbour[0].g_cost = weight
                     neighbour[0].h_cost = cost
+                    neighbour[0].f_cost = weight + cost
                     if neighbour[0] not in open_nodes:
                         open_nodes.append(neighbour[0])
 
@@ -156,7 +162,7 @@ def a_star(nodes_list, starting_node_name, ending_node_name):
     return shortest_path_nodes, shortest_path_maps
 
 
-def get_shortest_path(env_obj, starting_node_name, end_node_name):
+def get_shortest_path(env_obj, starting_node_name, end_node_name, periodicities):
     """
     Calls A-star or djikistra algorithm (based on the USE_A_STAR flag)
     Args:
@@ -179,10 +185,14 @@ def get_shortest_path(env_obj, starting_node_name, end_node_name):
             print(f"The node {end_node_name} does not exist!")
             return None, None
 
+    # calculate the cost
+    env_name = env_obj.name
+    final_cost = final_cost_calc(env_name, periodicities=periodicities)
+
     if USE_A_STAR:
-        shortest_path_nodes, shortest_path_maps = a_star(env_obj.nodes, starting_node_name, end_node_name)
+        shortest_path_nodes, shortest_path_maps = a_star(env_obj.nodes, starting_node_name, end_node_name, final_cost)
     else:
-        shortest_path_nodes, shortest_path_maps = dijkstra(env_obj.nodes, starting_node_name, end_node_name)
+        shortest_path_nodes, shortest_path_maps = dijkstra(env_obj.nodes, starting_node_name, end_node_name, final_cost)
 
     return shortest_path_nodes, shortest_path_maps
 

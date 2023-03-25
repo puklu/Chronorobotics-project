@@ -6,7 +6,7 @@ from delete_utils import delete_a_map, delete_all_maps_of_an_environment
 from find_shortest_path import get_shortest_path, print_shortest_path
 from data_manipulation import manipulated_map_upload
 from visualise import visualise_similarity_matrix, visualise_fft_for_env
-from cost_calculation import image_similarity_matrix_update
+from cost_calculation import image_similarity_matrix_update, time_cost_calc, final_cost_calc
 
 
 def main():
@@ -39,11 +39,11 @@ def main():
             and not args.mani:
 
         # batch_upload()  # upload to db # TODO: SHOULD BE UNCOMMENTED AFTER TESTING IS DONE. THE FOLLOWING LINES SHOULD BE REMOVED.
-        # find_map_according_to_time([3600, 86400, 604800, 31536000])
-        # fetch_maps_according_to_time('env2', [3600, 86400, 604800, 2592000, 31536000])
-        # fetch_maps_by_time_cost('env0', [3600])
+
+        time_cost_calc('env0', [3600])  # [3600, 86400, 604800, 2592000, 31536000])
+        # final_cost_calc('env0', [3600])
         # image_similarity_matrix_update('env', 'ddd')
-        visualise_similarity_matrix('env0')
+        # visualise_similarity_matrix('env0')
         # visualise_fft_for_env('env0')
 
 
@@ -149,9 +149,13 @@ def main():
         starting_node_name = args.shortest[0]
         last_node_name = args.shortest[1]
 
+        # TODO Peridocities calculation method to be called here, until then hardcoded values
+        periodicities = [3600]
+
         shortest_path_nodes, shortest_path_maps = get_shortest_path(env_obj=env_obj,
                                                                     starting_node_name=starting_node_name,
-                                                                    end_node_name=last_node_name)
+                                                                    end_node_name=last_node_name,
+                                                                    periodicities=periodicities)
 
         print_shortest_path(shortest_path_nodes, shortest_path_maps)
 

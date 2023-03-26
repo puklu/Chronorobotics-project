@@ -133,16 +133,17 @@ def a_star(nodes_list, starting_node_name, ending_node_name, final_cost):
 
         for neighbour in current_node.neighbours:
             if neighbour[0] not in closed_nodes:
-                weight = current_node.g_cost # + neighbour[2]
+                # weight = current_node.g_cost  # + neighbour[2]
                 # cost = weight + neighbour[3]
 
                 # # final_cost = {map_name: [cost, distance, map_timestamp, map_timestamp_local, final_cost]}
-                cost = weight + final_cost[neighbour[1]][-1]     # neighbour[1] <- map_name
+                cost = final_cost[neighbour[1]][-1]     # neighbour[1] <- map_name
+                weight = current_node.g_cost + cost
 
-                if neighbour[0] in open_nodes and cost < neighbour[0].f_cost:
+                if neighbour[0] in open_nodes and weight < neighbour[0].f_cost:
                     idx = open_nodes.index(neighbour[0])
                     del open_nodes[idx]
-                if neighbour[0] in closed_nodes and cost < neighbour[0].f_cost:
+                if neighbour[0] in closed_nodes and weight < neighbour[0].f_cost:
                     idx = closed_nodes.index(neighbour[0])
                     del closed_nodes[idx]
 
@@ -151,11 +152,11 @@ def a_star(nodes_list, starting_node_name, ending_node_name, final_cost):
                     neighbour[0].via_map = neighbour[1]
                     neighbour[0].g_cost = weight
                     neighbour[0].h_cost = cost
-                    neighbour[0].f_cost = weight + cost
+                    neighbour[0].f_cost = weight
                     if neighbour[0] not in open_nodes:
                         open_nodes.append(neighbour[0])
 
-                    open_nodes.sort(key=lambda x: x.h_cost + x.g_cost, reverse=False)
+                    open_nodes.sort(key=lambda x: x.f_cost, reverse=False)
 
     find_shortest_path(ending_node, starting_node, shortest_path_nodes, shortest_path_maps)
 

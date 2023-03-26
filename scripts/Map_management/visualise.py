@@ -52,7 +52,7 @@ def seaborn_time_cost_line_plot(x_axis_data, y_axis_data, xticks, current_time_l
     ax.set_title(f"Score for each map. Current time: {current_time_local}", fontsize=16, fontweight='bold')
     ax.grid(True, linewidth=1.0, color='white')
     ax.set_xlabel("Map timestamp", fontsize=12)
-    ax.set_ylabel("Similarity", fontsize=12)
+    ax.set_ylabel("Cost [-]", fontsize=12)
     # ax.text(3, 7, current_time_local, fontsize=12, color='red')
     plt.savefig(f"{PLOTS_PATH}/time_cost.svg")
 

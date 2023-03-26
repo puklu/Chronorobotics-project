@@ -12,6 +12,7 @@ class Environment:
         self.nodes_names = []
         self.edges = []
         self.similarity_matrix = []
+        self.softmax_similarity_matrix = []
         self.map_metadata = {'maps_names': [],
                              'images': [],
                              'trans': [],

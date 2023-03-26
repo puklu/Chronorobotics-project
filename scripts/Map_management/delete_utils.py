@@ -78,9 +78,10 @@ def delete_a_map(env_name, map_name):
             for map_name in maps_names:
                 images_names.append(f"{env_name}.{map_name}.jpg")
 
-            recalculated_similarity_matrix = image_similarity_matrix_calc(images_names, is_plot=False)
+            recalculated_similarity_matrix, recalculated_softmax_similarity_matrix = image_similarity_matrix_calc(env_name, save_plot=False)
 
             env_obj.similarity_matrix = recalculated_similarity_matrix
+            env_obj.softmax_similarity_matrix = recalculated_softmax_similarity_matrix
 
             # deleting all the downloaded images to save space
             for path, directories, files in os.walk(IMAGES_PATH):

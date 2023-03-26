@@ -6,7 +6,7 @@ from delete_utils import delete_a_map, delete_all_maps_of_an_environment
 from find_shortest_path import get_shortest_path, print_shortest_path
 from data_manipulation import manipulated_map_upload
 from visualise import visualise_similarity_matrix, visualise_fft_for_env
-from cost_calculation import image_similarity_matrix_update, time_cost_calc, final_cost_calc
+from cost_calculation import image_similarity_matrix_update, time_cost_calc, final_cost_calc, image_similarity_matrix_calc
 
 
 def main():
@@ -40,9 +40,11 @@ def main():
 
         # batch_upload()  # upload to db # TODO: SHOULD BE UNCOMMENTED AFTER TESTING IS DONE. THE FOLLOWING LINES SHOULD BE REMOVED.
 
-        time_cost_calc('env0', [3600])  # [3600, 86400, 604800, 2592000, 31536000])
-        # final_cost_calc('env0', [3600])
-        # image_similarity_matrix_update('env', 'ddd')
+        # time_cost_calc('env0', [3600])  # [3600, 86400, 604800, 2592000, 31536000])
+        final_cost_calc('env0', [3600])
+
+        # image_similarity_matrix_calc('env0')
+
         # visualise_similarity_matrix('env0')
         # visualise_fft_for_env('env0')
 

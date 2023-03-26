@@ -45,15 +45,11 @@ def seaborn_time_cost_line_plot(x_axis_data, y_axis_data, xticks, current_time_l
     plt.figure(figsize=(23, 12))
     ax = sns.lineplot(x=x_axis_data, y=y_axis_data, marker='o')
     ax.set_facecolor('#F0F0F0')
-    # ax = plt.gca()
     ax.set_xticklabels(xticks, rotation=30, ha='right')
-    # ax.set_xlim(x_ticks[0], x_ticks[-1])
-    # plt.xticks(x_ticks, x_axis_data)
     ax.set_title(f"Score for each map. Current time: {current_time_local}", fontsize=16, fontweight='bold')
     ax.grid(True, linewidth=1.0, color='white')
     ax.set_xlabel("Map timestamp", fontsize=12)
     ax.set_ylabel("Cost [-]", fontsize=12)
-    # ax.text(3, 7, current_time_local, fontsize=12, color='red')
     plt.savefig(f"{PLOTS_PATH}/time_cost.svg")
 
     if SHOW_PLOT:
@@ -69,7 +65,7 @@ def visualise_heatmap(data, xlabels, ylabels, title, show_plot=SHOW_PLOT):
         ylabels: Labels for y-axis.
     """
     plt.figure(figsize=(23, 18))
-    ax = sns.heatmap(data,xticklabels=xlabels, yticklabels=ylabels ) #, annot=True, fmt=".3f")
+    ax = sns.heatmap(data,xticklabels=xlabels, yticklabels=ylabels , annot=True, fmt=".3f")
     ax.set_title(title, fontsize=16, fontweight='bold')
 
     ax.set_xticklabels(ax.get_xticklabels(), rotation=30, ha='right')
@@ -80,9 +76,13 @@ def visualise_heatmap(data, xlabels, ylabels, title, show_plot=SHOW_PLOT):
 
 
 def visualise_similarity_matrix(env_name):
+
     from fetch_utils import fetch_environment
     env_obj = fetch_environment(env_name)  # fetching the env object
-    similarity_matrix = env_obj.similarity_matrix
+
+    # similarity_matrix = env_obj.similarity_matrix
+    similarity_matrix = env_obj.softmax_similarity_matrix
+
     map_names = env_obj.map_metadata['maps_names']
 
     plot_title = "Similarity matrix"

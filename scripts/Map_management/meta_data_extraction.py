@@ -65,9 +65,10 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
         images_names.append(f"{env_name}.{map_name}.jpg")
 
     # the updated similarity matrix
-    updated_similarity_matrix = image_similarity_matrix_update(similarity_matrix_for_env, images_names)
+    updated_similarity_matrix, updated_softmax_similarity_matrix = image_similarity_matrix_update(similarity_matrix_for_env, images_names)
 
     env_obj.similarity_matrix = updated_similarity_matrix
+    env_obj.softmax_similarity_matrix = updated_softmax_similarity_matrix
 
     # deleting all the downloaded images to save space
     for path, directories, files in os.walk(IMAGES_PATH):

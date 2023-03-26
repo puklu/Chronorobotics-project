@@ -202,11 +202,14 @@ def image_similarity_matrix_update(similarity_matrix, images_names, save_plot=SA
 
     # print(f"similarity_matrix= {similarity_matrix}")
 
-    # SHOULD BE DONE ROW WISE
-    # softmax_similarity_matrix = softmax(BETA*similarity_matrix)
+    # Softmaxing the matrix values
+    softmax_similarity_matrix = np.zeros((num_of_images, num_of_images))
+    for j in range(num_of_images):
+        softmax_similarity_matrix[j] = softmax(BETA*similarity_matrix[j])
+
     # print(f"softmax_similarity_matrix= {softmax_similarity_matrix}")
 
-    magnitude_spectrum = calculate_fft(similarity_matrix)
+    # magnitude_spectrum = calculate_fft(softmax_similarity_matrix)
 
     if save_plot:
         map_names = []
@@ -215,19 +218,26 @@ def image_similarity_matrix_update(similarity_matrix, images_names, save_plot=SA
             map_names.append(map_name)
 
         # Plotting
-        visualise_heatmap(similarity_matrix, map_names, map_names, 'Similarity matrix')
-        visualise_fft(magnitude_spectrum)
+        visualise_heatmap(softmax_similarity_matrix, map_names, map_names, title='Similarity matrix')
+        # visualise_fft(magnitude_spectrum)
 
-    return similarity_matrix
+    return similarity_matrix, softmax_similarity_matrix
 
 
-def image_similarity_matrix_calc(images_names, is_plot=SAVE_PLOTS):
+def image_similarity_matrix_calc(env_name, save_plot=SAVE_PLOTS):
     """
     Calculates the similarity matrix of images present in <IMAGES_PATH>
     Args:
         images_names: Images for which the matrix has to be calculated
-        is_plot: to plot heatmap of the matrix
+        save_plot: to plot heatmap of the matrix
     """
+    from fetch_utils import fetch_first_images, fetch_environment
+    env_obj = fetch_environment(env_name)  # fetching the env details
+    fetch_first_images(env_obj)
+    maps_names = env_obj.map_metadata['maps_names']
+    images_names = []
+    for map_name in maps_names:
+        images_names.append(f"{env_name}.{map_name}.jpg")
 
     names_of_images = images_names
     num_of_images = len(names_of_images)
@@ -254,22 +264,23 @@ def image_similarity_matrix_calc(images_names, is_plot=SAVE_PLOTS):
 
     # print(f"similarity_matrix= {similarity_matrix}")
 
-    # softmax_similarity_matrix = softmax(BETA*similarity_matrix)
-    # print(f"softmax_similarity_matrix= {softmax_similarity_matrix}")
+    softmax_similarity_matrix = np.zeros((num_of_images, num_of_images))
+    for j in range(num_of_images):
+        softmax_similarity_matrix[j] = softmax(BETA * similarity_matrix[j])
 
-    magnitude_spectrum = calculate_fft(similarity_matrix)
+    # magnitude_spectrum = calculate_fft(softmax_similarity_matrix)
 
-    if is_plot:
+    if save_plot:
         map_names = []
         for image in names_of_images:
             env_name, map_name, _ = image.split(".")
             map_names.append(map_name)
 
         # Plotting
-        visualise_heatmap(similarity_matrix, map_names, map_names)
-        visualise_fft(magnitude_spectrum)
+        visualise_heatmap(softmax_similarity_matrix, map_names, map_names, title='Similarity matrix')
+        # visualise_fft(softmax_similarity_matrix)
 
-    return similarity_matrix
+    return similarity_matrix, softmax_similarity_matrix
 
 
 def calculate_fft(data):

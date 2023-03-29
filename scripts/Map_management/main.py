@@ -10,7 +10,7 @@ from cost_calculation import image_similarity_matrix_update, time_cost_calc, fin
 
 
 def main():
-    parser = argparse.ArgumentParser(description='')
+    parser = argparse.ArgumentParser(description='Tool for uploading and downloading maps created by VT&R')
     parser.add_argument('-e', help="Name of the environment for which map needs to be fetched")
     parser.add_argument('-m', help="Name of the map that needs to be fetched")
     parser.add_argument('-oe', help="Name of the environment for which only env needs to be fetched")
@@ -25,8 +25,13 @@ def main():
                         nargs='+')
 
     args = parser.parse_args()
+    # args = vars(parser.parse_args())
+    # print(args)
+    # print(not any(args.values()))
+    # print(args['e'] and not any(args.values()))
 
     # when no arguments are provided, buckets are created and all the maps for all the envs are uploaded
+    # if not any(args.values()):
     if not args.e \
             and not args.m \
             and not args.u \
@@ -38,10 +43,11 @@ def main():
             and not args.shortest \
             and not args.mani:
 
+        # print("test test")
         # batch_upload()  # upload to db # TODO: SHOULD BE UNCOMMENTED AFTER TESTING IS DONE. THE FOLLOWING LINES SHOULD BE REMOVED.
 
-        # time_cost_calc('env0', [3600])  # [3600, 86400, 604800, 2592000, 31536000])
-        final_cost_calc('env0', [3600])
+        time_cost_calc('env0', [3600])  # [3600, 86400, 604800, 2592000, 31536000])
+        # final_cost_calc('env0', [3600])
 
         # image_similarity_matrix_calc('env0')
 

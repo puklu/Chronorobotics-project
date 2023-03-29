@@ -42,7 +42,8 @@ def create_graph(env_obj, start_node_name, end_node_name, map_name, distance):
 
     # add the neighbour data
     start_node.neighbours.append([end_node, map_name, distance])
-    end_node.neighbours.append([start_node, map_name, distance])
+
+    # end_node.neighbours.append([start_node, map_name, distance])  # can be uncommented if the graph should be undirected
 
     # setting the weights to a big number for shortest path finding algorithm
     start_node.g_cost = 10000000

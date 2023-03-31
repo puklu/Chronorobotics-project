@@ -22,7 +22,6 @@ def create_graph(env_obj, start_node_name, end_node_name, map_name, distance):
         end_node_name: Name of the ending node
         map_name: name of the map connecting the two nodes
         distance: Distance between the two nodes
-        cost: To keep track of cost until the node
 
     Returns: Node instances
     """
@@ -43,7 +42,8 @@ def create_graph(env_obj, start_node_name, end_node_name, map_name, distance):
     # add the neighbour data
     start_node.neighbours.append([end_node, map_name, distance])
 
-    # end_node.neighbours.append([start_node, map_name, distance])  # can be uncommented if the graph should be undirected
+    # # Following line can be uncommented if the graph is undirected
+    # end_node.neighbours.append([start_node, map_name, distance])
 
     # setting the weights to a big number for shortest path finding algorithm
     start_node.g_cost = 10000000

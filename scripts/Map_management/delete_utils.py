@@ -1,9 +1,12 @@
 import os
+import logging
 
-from constants import CLIENT, MAP_BUCKET, ENV_BUCKET, FIRST_IMAGE_BUCKET, IMAGES_PATH
+from constants import CLIENT, MAP_BUCKET, ENV_BUCKET, FIRST_IMAGE_BUCKET, IMAGES_PATH, RESULTS_PATH, LOGS_PATH
 from upload_utils import env_upload, map_upload
 from fetch_utils import fetch_environment, fetch_first_images
 from cost_calculation import image_similarity_matrix_calc
+
+logging.basicConfig(filename=f"{LOGS_PATH}/delete_utils.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def delete_a_map(env_name, map_name):
@@ -121,7 +124,8 @@ def delete_all_maps_of_an_environment(env_name):
                 CLIENT.remove_object(MAP_BUCKET, map_obj_name)  # map deleted
                 print(f"map: {map_} deleted from env: {env_name}")
                 CLIENT.remove_object(FIRST_IMAGE_BUCKET, first_image_obj_name)  # first image deleted
-                print(f"first image: {first_image_obj_name} deleted from env: {env_name}")
+                logging.info(f"first image: {first_image_obj_name} deleted from env: {env_name}")
+                # print(f"first image: {first_image_obj_name} deleted from env: {env_name}")
             except:
                 print(f"{map_} doesn't exist in the db, so nothing deleted ")
 

@@ -1,9 +1,9 @@
 from datetime import datetime
-
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import tzlocal
+
 from constants import CURRENT_SYSTEM_TIME, PLOTS_PATH
 
 SHOW_PLOT = False
@@ -16,6 +16,7 @@ def pyplot_time_cost_line_plot(x_axis_data, y_axis_data, current_time_local, sho
         x_axis_data: Time stamps of the maps
         y_axis_data: Calculated score/cost of each map based on the current time
         current_time_local: Current system time
+        show_plot: Saves plot to results/plots/ directory if set to True. True by default
 
     """
     plt.figure()
@@ -23,7 +24,7 @@ def pyplot_time_cost_line_plot(x_axis_data, y_axis_data, current_time_local, sho
     plt.title(current_time_local)
     plt.xticks(rotation=30)
     plt.grid()
-    if SHOW_PLOT:
+    if show_plot:
         plt.show()
 
 
@@ -34,6 +35,7 @@ def seaborn_time_cost_line_plot(x_axis_data, y_axis_data, xticks, current_time_l
         x_axis_data: Time stamps of the maps
         y_axis_data: Calculated score/cost of each map based on the current time
         current_time_local: Current system time
+        show_plot: Saves plot to results/plots/ directory if set to True. True by default
 
     """
 
@@ -50,9 +52,9 @@ def seaborn_time_cost_line_plot(x_axis_data, y_axis_data, xticks, current_time_l
     ax.grid(True, linewidth=1.0, color='white')
     ax.set_xlabel("Map timestamp", fontsize=12)
     ax.set_ylabel("Cost [-]", fontsize=12)
-    plt.savefig(f"{PLOTS_PATH}/time_cost.svg")
+    plt.savefig(f"{PLOTS_PATH}/time_cost.eps", format='eps')
 
-    if SHOW_PLOT:
+    if show_plot:
         plt.show()
 
 
@@ -63,15 +65,17 @@ def visualise_heatmap(data, xlabels, ylabels, title, show_plot=SHOW_PLOT):
         data: The similarity matrix/ fft data etc
         xlabels: Labels for x-axis.
         ylabels: Labels for y-axis.
+        show_plot: Saves plot to results/plots/ directory if set to True. True by default
+
     """
     plt.figure(figsize=(23, 18))
-    ax = sns.heatmap(data,xticklabels=xlabels, yticklabels=ylabels , annot=True, fmt=".3f")
+    ax = sns.heatmap(data,xticklabels=xlabels, yticklabels=ylabels, annot=True, fmt=".3f")
     ax.set_title(title, fontsize=16, fontweight='bold')
 
     ax.set_xticklabels(ax.get_xticklabels(), rotation=30, ha='right')
-    plt.savefig(f"{PLOTS_PATH}/similarity_matrix.svg")
+    plt.savefig(f"{PLOTS_PATH}/similarity_matrix.eps" , format='eps')
 
-    if SHOW_PLOT:
+    if show_plot:
         plt.show()
 
 
@@ -94,6 +98,8 @@ def visualise_fft(spectrum, show_plot=SHOW_PLOT):
     Plots magnitude spectrum provided the calculated magnitude spectrum
     Args:
         spectrum:
+        show_plot: Saves plot to results/plots/ directory if set to True. True by default
+
 
     Returns:
 
@@ -101,7 +107,7 @@ def visualise_fft(spectrum, show_plot=SHOW_PLOT):
     # plot the magnitude spectrum
     plt.imshow(spectrum, cmap='gray')
 
-    if SHOW_PLOT:
+    if show_plot:
         plt.show()
 
 

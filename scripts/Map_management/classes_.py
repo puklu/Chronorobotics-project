@@ -1,7 +1,6 @@
 from copyreg import pickle
 import pickle
 from constants import TO_UPLOAD_PATH
-import numpy as np
 
 
 class Environment:

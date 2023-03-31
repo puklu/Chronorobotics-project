@@ -1,6 +1,5 @@
 import sys
 import csv
-
 import numpy as np
 from numpy import sin, pi, cos
 from scipy.special import softmax
@@ -228,7 +227,7 @@ def image_similarity_matrix_calc(env_name, save_plot=SAVE_PLOTS):
     """
     Calculates the similarity matrix of images present in <IMAGES_PATH>
     Args:
-        images_names: Images for which the matrix has to be calculated
+        env_name: Name of the environment for which the matrix needs to be calculated
         save_plot: to plot heatmap of the matrix
     """
     from fetch_utils import fetch_first_images, fetch_environment

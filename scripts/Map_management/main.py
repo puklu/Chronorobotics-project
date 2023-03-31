@@ -1,12 +1,13 @@
 import argparse
 
 from upload_utils import batch_upload, map_upload, create_buckets, env_upload, first_image_upload
-from fetch_utils import print_env_details, fetch_maps, fetch_environment, fetch_maps_by_time_cost
+from fetch_utils import save_env_details, fetch_maps, fetch_environment, fetch_maps_by_time_cost
 from delete_utils import delete_a_map, delete_all_maps_of_an_environment
 from find_shortest_path import get_shortest_path, print_shortest_path
 from data_manipulation import manipulated_map_upload
 from visualise import visualise_similarity_matrix, visualise_fft_for_env
-from cost_calculation import image_similarity_matrix_update, time_cost_calc, final_cost_calc, image_similarity_matrix_calc
+from cost_calculation import image_similarity_matrix_update, time_cost_calc, final_cost_calc, \
+    image_similarity_matrix_calc
 
 
 def main():
@@ -20,17 +21,13 @@ def main():
     parser.add_argument('-delamap', help="Name of the map to be deleted from a environment")
     parser.add_argument('-delmaps', help="Name of the env from which all maps are to be deleted")
     parser.add_argument('-shortest', help="Starting nodes for shortest path between two nodes", nargs='+')
-
     parser.add_argument('-mani', help="To manipulate distance and cost between two nodes when uploading maps",
                         nargs='+')
 
     args = parser.parse_args()
     # args = vars(parser.parse_args())
-    # print(args)
-    # print(not any(args.values()))
-    # print(args['e'] and not any(args.values()))
 
-    # when no arguments are provided, buckets are created and all the maps for all the envs are uploaded
+    # when no arguments are provided, buckets are created and all the maps for all the envs are uploaded -------------
     # if not any(args.values()):
     if not args.e \
             and not args.m \
@@ -46,16 +43,16 @@ def main():
         # print("test test")
         # batch_upload()  # upload to db # TODO: SHOULD BE UNCOMMENTED AFTER TESTING IS DONE. THE FOLLOWING LINES SHOULD BE REMOVED.
 
-        time_cost_calc('env0', [3600])  # [3600, 86400, 604800, 2592000, 31536000])
-        # final_cost_calc('env0', [3600])
+        # time_cost_calc('env0', [3600])  # [3600, 86400, 604800, 2592000, 31536000])
+        final_cost_calc('env0', [3600])
 
         # image_similarity_matrix_calc('env0')
 
         # visualise_similarity_matrix('env0')
         # visualise_fft_for_env('env0')
+    # ----------------------------------------------------------------------------------------------------------------
 
-
-    # delete all maps from an environment
+    # delete all maps from an environment ----------------------------------------------------------------------------
     elif args.delmaps \
             and not args.e \
             and not args.m \
@@ -67,8 +64,10 @@ def main():
             and not args.shortest \
             and not args.mani:
         delete_all_maps_of_an_environment(args.delmaps)
+        save_env_details(args.e)
+    # -------------------------------------------------------------------------------------------------------------
 
-    # deleting a map
+    # deleting a map ----------------------------------------------------------------------------------------------
     elif args.delamap \
             and args.e \
             and not args.m \
@@ -82,8 +81,10 @@ def main():
         map_name = args.delamap
         env_name = args.e
         delete_a_map(env_name, map_name)
+        save_env_details(env_name)
+    # -------------------------------------------------------------------------------------------------------------
 
-    # when only -oe is provided, only env object is fetched
+    # when only -oe is provided, only env object is fetched --------------------------------------------------------
     elif args.oe \
             and not args.e \
             and not args.m \
@@ -95,9 +96,10 @@ def main():
             and not args.shortest \
             and not args.mani:
 
-        print_env_details(args.oe)  # printing the metadata
+        save_env_details(args.oe)  # printing the metadata
+    # --------------------------------------------------------------------------------------------------------------
 
-    # when only -e is provided, all the maps for that particular environment are fetched
+    # when only -e is provided, all the maps for that particular environment are fetched ----------------------------
     elif args.e \
             and not args.m \
             and not args.u \
@@ -109,8 +111,9 @@ def main():
             and not args.shortest \
             and not args.mani:
         fetch_maps(args.e)
+    # --------------------------------------------------------------------------------------------------------------
 
-    # when -e and -m are provided, that particular map is fetched for that environment
+    # when -e and -m are provided, that particular map is fetched for that environment -----------------------------
     elif args.e \
             and args.m \
             and not args.u \
@@ -122,8 +125,9 @@ def main():
             and not args.shortest \
             and not args.mani:
         fetch_maps(args.e, args.m)
+    # --------------------------------------------------------------------------------------------------------------
 
-    # when -u and -e are provided, map u is uploaded for env e from .ros
+    # when -u and -e are provided, map u is uploaded for env e from .ros --------------------------------------------
     elif args.u \
             and args.e \
             and args.snode \
@@ -140,8 +144,10 @@ def main():
         end_node = args.enode
 
         map_upload(env_name=args.e, map_name=map_name, start_node=start_node, end_node=end_node)
+        save_env_details(args.e)
+    # --------------------------------------------------------------------------------------------------------------
 
-    # Find the shortest path between two nodes
+    # Find the shortest path between two nodes ---------------------------------------------------------------------
     elif args.e \
             and not args.m \
             and not args.u \
@@ -171,9 +177,9 @@ def main():
         # if shortest_path_maps:
         #     for map_ in shortest_path_maps:
         #         fetch_maps(args.e, map_)
+    # -----------------------------------------------------------------------------------------------------------
 
-
-    # ONLY FOR TESTING. SHOULD NOT BE CALLED OTHERWISE!!
+    # ONLY FOR TESTING. SHOULD NOT BE CALLED OTHERWISE!! ---------------------------------------------------------
     # when -u, -e, -mani are provided, map u is uploaded for env e from .ros with the manipulated length of the map
     elif args.u \
             and args.e \
@@ -202,6 +208,8 @@ def main():
 
     else:
         raise Exception("Please try again, something is missing..")
+
+    # ------------------------------------------------------------------------------------------------------------
 
 
 main()

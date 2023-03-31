@@ -28,8 +28,9 @@ IMAGES_PATH = ROOT / 'scripts/Map_management/images/'
 SIAMESE_NETWORK_PATH = ROOT / 'scripts/Siamese_network_image_alignment/'
 PATH_TO_SIAMESE_MODEL = SIAMESE_NETWORK_PATH/ 'model_eunord.pt'
 
-PLOTS_PATH = ROOT / 'scripts/Map_management/results/plots/'
-RESULTS_PATH = ROOT / 'scripts/Map_management/results/'
+RESULTS_PATH = ROOT / 'results/'
+PLOTS_PATH = RESULTS_PATH / 'plots/'
+LOGS_PATH = ROOT / 'logs/'
 
 # Buckets
 ENV_BUCKET = "environment"

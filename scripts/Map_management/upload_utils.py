@@ -1,12 +1,17 @@
 import os
 from pathlib import Path
 from zipfile import ZipFile
+import logging
 
-from constants import TO_UPLOAD_PATH, OBJECTS_PATH, ENV_BUCKET, MAP_BUCKET, FIRST_IMAGE_BUCKET, DOT_ROS_PATH, CLIENT
+from constants import TO_UPLOAD_PATH, OBJECTS_PATH, ENV_BUCKET, MAP_BUCKET, FIRST_IMAGE_BUCKET, DOT_ROS_PATH, CLIENT, \
+    RESULTS_PATH, LOGS_PATH
 from classes_ import Environment
 from fetch_utils import fetch_environment
 from meta_data_extraction import extract_map_metadata
 from data_manipulation import extract_map_metadata_manipulated, manipulated_map_upload
+
+logging.basicConfig(filename=f"{LOGS_PATH}/upload_utils.log", level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def create_buckets():
@@ -17,22 +22,26 @@ def create_buckets():
     if not found:
         CLIENT.make_bucket(MAP_BUCKET)
         print(f"Bucket {MAP_BUCKET} created")
-    # else:
-    #     print(f"Bucket {MAP_BUCKET} already exists")
+    else:
+        logging.info(f"Bucket {MAP_BUCKET} already exists")
+    #   print(f"Bucket {MAP_BUCKET} already exists")
 
     found = CLIENT.bucket_exists(ENV_BUCKET)
     if not found:
         CLIENT.make_bucket(ENV_BUCKET)
         print(f"Bucket {ENV_BUCKET} created")
-    # else:
+    else:
+        logging.info(f"Bucket {ENV_BUCKET} already exists")
     #     print(f"Bucket {ENV_BUCKET} already exists")
 
     found = CLIENT.bucket_exists(FIRST_IMAGE_BUCKET)
     if not found:
         CLIENT.make_bucket(FIRST_IMAGE_BUCKET)
         print(f"Bucket {FIRST_IMAGE_BUCKET} created")
-    # else:
+    else:
+        logging.info(f"Bucket {ENV_BUCKET} already exists")
     #     print(f"Bucket {ENV_BUCKET} already exists")
+
 
 def env_upload(env_data):
     """
@@ -49,7 +58,6 @@ def env_upload(env_data):
     # env object is always updated in db even if it already exists
     CLIENT.fput_object(bucket_name=ENV_BUCKET, object_name=obj_name,
                        file_path=str(TO_UPLOAD_PATH) + "/" + 'pickled_env.pkl')
-
 
     print(f"Environment {obj_name} uploaded to {ENV_BUCKET} bucket")
 
@@ -139,7 +147,8 @@ def map_upload(env_name, map_name, start_node, end_node, path_to_directory_conta
     # Fetch env obj from db, append to it, then replace the one in db
     env_obj = fetch_environment(env_name)
     if env_obj:  # if the env exists in db then update it
-        if map_name not in env_obj.map_metadata['maps_names']:  # adding the name of the map to metadata if doesn't exist
+        if map_name not in env_obj.map_metadata[
+            'maps_names']:  # adding the name of the map to metadata if doesn't exist
             env_obj = extract_map_metadata(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
                                            end_node_name=end_node, path=location_of_map)
 
@@ -153,7 +162,6 @@ def map_upload(env_name, map_name, start_node, end_node, path_to_directory_conta
     else:
         map_path = f"{path_to_directory_containing_map_directory}/{env_name}.{map_name}.zip"  # path of the zipped map that will be uploaded
 
-
     # Uploading the map
     try:
 
@@ -163,8 +171,8 @@ def map_upload(env_name, map_name, start_node, end_node, path_to_directory_conta
     except:
         CLIENT.fput_object(bucket_name=MAP_BUCKET, object_name=map_obj_name, file_path=map_path)
         env_upload(env_data=env_obj)  # uploading the env obj
-        print(f"Map {map_obj_name} uploaded to {MAP_BUCKET} bucket")
-
+        print(
+            f"Map |{map_obj_name}| uploaded to {MAP_BUCKET} bucket for |start node: {start_node}| and |end node: {end_node}|")
 
     # Delete the zipped map from local
     if path_to_directory_containing_map_directory is None:
@@ -200,10 +208,13 @@ def first_image_upload(env_name, map_name, path_to_directory_containing_map_dire
 
     # Uploading the first image
     try:
-        statobj = CLIENT.stat_object(FIRST_IMAGE_BUCKET, image_obj_name, ssec=None, version_id=None, extra_query_params=None)
+        statobj = CLIENT.stat_object(FIRST_IMAGE_BUCKET, image_obj_name, ssec=None, version_id=None,
+                                     extra_query_params=None)
+        logging.info(f"{image_obj_name} already exists in {FIRST_IMAGE_BUCKET} bucket")
         # print(f"{image_obj_name} already exists in {FIRST_IMAGE_BUCKET} bucket")
     except:
         CLIENT.fput_object(bucket_name=FIRST_IMAGE_BUCKET, object_name=image_obj_name, file_path=first_image_path)
+        logging.info(f"Image {image_obj_name} uploaded to {FIRST_IMAGE_BUCKET} bucket")
         # print(f"Image {image_obj_name} uploaded to {FIRST_IMAGE_BUCKET} bucket")
 
 
@@ -223,7 +234,7 @@ def batch_upload():
     MANIPULATE = True  # ATTENTION !! Data is probably being manipulated !!
     # *******************************************************************************
     DISTANCE = [2, 4, 1, 1, 2, 8, 3, 1, 6, 1]
-    COST =     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    COST = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     TIMESTAMPS = [None, None, None, None, None, None, None, None, None, None]
     # *******************************************************************************
 
@@ -276,8 +287,6 @@ def batch_upload():
                                        map_name=map_name,
                                        start_node=start_node_name,
                                        end_node=end_node_name,
-                                       manipulated_distance= DISTANCE[j],
+                                       manipulated_distance=DISTANCE[j],
                                        manipulated_cost=COST[j],
                                        path_to_directory_containing_map_directory=f"{maps_path}/{environments[i]}", )
-
-

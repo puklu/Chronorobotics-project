@@ -1,5 +1,6 @@
 from cost_calculation import final_cost_calc
 
+
 def find_shortest_path(node, starting_node, shortest_path_nodes, shortest_path_maps):
     """
     To traceback the path from end node to starting node using via
@@ -92,6 +93,7 @@ def a_star(nodes_list, starting_node_name, ending_node_name, final_cost):
         nodes_list: A list of all the nodes ( instances of Node) in the graph
         starting_node_name: The name of the starting node
         ending_node_name: The name of the ending node
+        final_cost: a dictionary containing the heuristic cost of all the maps
 
     Returns:
 
@@ -165,7 +167,7 @@ def a_star(nodes_list, starting_node_name, ending_node_name, final_cost):
 
 def get_shortest_path(env_obj, starting_node_name, end_node_name, periodicities):
     """
-    Calls A-star or djikistra algorithm (based on the USE_A_STAR flag)
+    Calls A-star or dijkstra algorithm (based on the USE_A_STAR flag)
     Args:
         env_obj: env_ obj
         starting_node_name: Node from which search should start

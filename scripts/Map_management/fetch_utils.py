@@ -3,32 +3,39 @@ from zipfile import ZipFile
 from copyreg import pickle
 import pickle
 import json
+import graphviz
+import logging
 
-from constants import FETCHED_MAPS_PATH, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, ENV_BUCKET, MAP_BUCKET, CLIENT, FIRST_IMAGE_BUCKET, IMAGES_PATH, RESULTS_PATH
+from constants import FETCHED_MAPS_PATH, FETCHED_MAP_OBJ_PATH, FETCHED_ENV_OBJ_PATH, ENV_BUCKET, MAP_BUCKET, CLIENT, \
+    FIRST_IMAGE_BUCKET, IMAGES_PATH, RESULTS_PATH, LOGS_PATH
 from cost_calculation import time_cost_calc
 
+logging.basicConfig(filename=f"{LOGS_PATH}/fetch_utils.log", level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
-def print_env_details(env_name):
+
+def save_env_details(env_name):
     """
-    Saves  the contents of env class as JSON file in results directory
+    Saves  the contents of env class as JSON file in results directory, a graphviz representation of the graph
+    of the environment.
     Args:
-        env_name: name of the environment for which details need to be printed
+        env_name: name of the environment for which details need to be saved
      """
+    g = graphviz.Digraph()  # for graph visualisation
     env_obj = fetch_environment(env_name)  # fetching the env object
     meta_data_dict = fetch_map_metadata(env_obj)  # getting map metadata from it
 
-    # a dictionary to save all data as JSON
-    env_details = {"neighbours": [],
-                   "start_nodes": [],
-                   "end_nodes": [],
-                   "Similarity_matrix": env_obj.similarity_matrix.tolist()}
-
     if meta_data_dict:
-        env_details["name"] = env_obj.name
-        env_details["nodes_names"] = env_obj.nodes_names
-        env_details["maps_names"] = meta_data_dict['maps_names']
-        env_details["distance"] = meta_data_dict['distance']
-        env_details["timestamp"] = meta_data_dict['timestamp']
+        # a dictionary to save all data as JSON
+        env_details = {"neighbours": [],
+                       "start_nodes": [],
+                       "end_nodes": [],
+                       "Similarity_matrix": env_obj.similarity_matrix.tolist(),
+                       "name": env_obj.name,
+                       "nodes_names": env_obj.nodes_names,
+                       "maps_names": meta_data_dict['maps_names'],
+                       "distance": meta_data_dict['distance'],
+                       "timestamp": meta_data_dict['timestamp']}
 
         # print(f"env name: {env_obj.name}")
         # print(f"nodes in the env: {env_obj.nodes_names}")
@@ -45,6 +52,7 @@ def print_env_details(env_name):
             for neighbour in node.neighbours:
                 if node.key in neighbours:
                     neighbours[f"{node.key}"].append([neighbour[0].key, neighbour[2], neighbour[1]])
+
                 else:
                     neighbours[f"{node.key}"] = [[neighbour[0].key, neighbour[2], neighbour[1]]]
 
@@ -55,6 +63,25 @@ def print_env_details(env_name):
 
         with open(f"{RESULTS_PATH}/env_details.json", "w") as f:
             json.dump(env_details, f)
+
+        # visualising the environment graph ------------------------------------------------
+        maps_names = meta_data_dict['maps_names']
+        start_nodes = meta_data_dict['start_node']
+        end_nodes = meta_data_dict['end_node']
+
+        for gidx in range(len(maps_names)):
+            g.attr('edge', fontsize='5')
+            g.node(start_nodes[gidx].key, style='filled', fillcolor='darkturquoise', fontcolor='black')
+            g.node(end_nodes[gidx].key, style='filled', fillcolor='darkturquoise', fontcolor='black')
+            g.edge(start_nodes[gidx].key, end_nodes[gidx].key, label=maps_names[gidx], color='black', fontcolor='black')
+
+        g.attr(rankdir='LR')
+        g.graph_attr['label'] = f"Graph representation of {env_obj.name}"
+        g.graph_attr['labelloc'] = 'b'
+        g.render(f"{RESULTS_PATH}/env_graph", format='eps')
+        # --------------------------------------------------------------------------------
+
+        print(f"Details for {env_name} downloaded to {RESULTS_PATH}")
 
     else:
         print(f"metadata doesn't exist")
@@ -118,7 +145,6 @@ def fetch_maps_by_time_cost(env_name, periodicities):
     cost_ = time_cost_calc(maps_timestamps, periodicities, 1678863600)
 
     return cost_
-
 
 
 def fetch_maps(env, map_to_fetch=None):
@@ -222,7 +248,11 @@ def fetch_environment(env):
 
 
 def fetch_first_images(env_obj):
-
+    """
+    Downloads the first image of every map of the environment to images directory
+    Args:
+        env_obj: Instance of Environment class for the environment
+    """
     if not IMAGES_PATH.is_dir():  # Creating the directory if it doesn't exist
         IMAGES_PATH.mkdir(parents=True, exist_ok=True)
 
@@ -237,13 +267,8 @@ def fetch_first_images(env_obj):
     for image in images_to_fetch:
         try:
             CLIENT.fget_object(FIRST_IMAGE_BUCKET, image, file_path=f"{IMAGES_PATH}/{image}")
-            print(f"Image: {image} downloaded to {IMAGES_PATH} ")
+            logging.info(f"Image: {image} downloaded to {IMAGES_PATH} ")
+            # print(f"Image: {image} downloaded to {IMAGES_PATH} ")
         except:
-            print(f"Image: {image} not found in {FIRST_IMAGE_BUCKET} bucket")
-
-
-
-
-
-
-
+            logging.critical(f"Image: {image} not found in {FIRST_IMAGE_BUCKET} bucket")
+            # print(f"Image: {image} not found in {FIRST_IMAGE_BUCKET} bucket")

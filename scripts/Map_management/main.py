@@ -1,13 +1,13 @@
 import argparse
 
-from upload_utils import batch_upload, map_upload, create_buckets, env_upload, first_image_upload
+from upload_utils import batch_upload, map_upload
 from fetch_utils import save_env_details, fetch_maps, fetch_environment, fetch_maps_by_time_cost
 from delete_utils import delete_a_map, delete_all_maps_of_an_environment
-from find_shortest_path import get_shortest_path, print_shortest_path
+from find_path import get_path, print_path
 from data_manipulation import manipulated_map_upload
-from visualise import visualise_similarity_matrix, visualise_fft_for_env
+from visualise import visualise_similarity_matrix
 from cost_calculation import image_similarity_matrix_update, time_cost_calc, final_cost_calc, \
-    image_similarity_matrix_calc
+    calculate_similarity_matrix_and_periodicities, calculate_timeseries, calculate_periodicities
 
 
 def main():
@@ -20,7 +20,7 @@ def main():
     parser.add_argument('-enode', help="Name of the end node")
     parser.add_argument('-delamap', help="Name of the map to be deleted from a environment")
     parser.add_argument('-delmaps', help="Name of the env from which all maps are to be deleted")
-    parser.add_argument('-shortest', help="Starting nodes for shortest path between two nodes", nargs='+')
+    parser.add_argument('-findpath', help="Node names for between which path is desired", nargs='+')
     parser.add_argument('-mani', help="To manipulate distance and cost between two nodes when uploading maps",
                         nargs='+')
 
@@ -37,19 +37,18 @@ def main():
             and not args.enode \
             and not args.delamap \
             and not args.delmaps \
-            and not args.shortest \
+            and not args.findpath \
             and not args.mani:
 
         # print("test test")
         # batch_upload()  # upload to db # TODO: SHOULD BE UNCOMMENTED AFTER TESTING IS DONE. THE FOLLOWING LINES SHOULD BE REMOVED.
-
-        # time_cost_calc('env0', [3600])  # [3600, 86400, 604800, 2592000, 31536000])
-        final_cost_calc('env0', [3600])
-
-        # image_similarity_matrix_calc('env0')
-
-        # visualise_similarity_matrix('env0')
-        # visualise_fft_for_env('env0')
+        env_name = 'env8'
+        # time_cost_calc(env_name, [3600])  # [3600, 86400, 604800, 2592000, 31536000])
+        _, softmax_similarity_matrix, amplitudes, omegas, time_periods, _ = calculate_similarity_matrix_and_periodicities(env_name)
+        final_cost_calc(env_name, time_periods, amplitudes)
+        # visualise_similarity_matrix('env_name')
+        # visualise_fft_for_env('env_name')
+        # save_env_details('env_name')
     # ----------------------------------------------------------------------------------------------------------------
 
     # delete all maps from an environment ----------------------------------------------------------------------------
@@ -61,7 +60,7 @@ def main():
             and not args.snode \
             and not args.enode \
             and not args.delamap \
-            and not args.shortest \
+            and not args.findpath \
             and not args.mani:
         delete_all_maps_of_an_environment(args.delmaps)
         save_env_details(args.e)
@@ -76,7 +75,7 @@ def main():
             and not args.snode \
             and not args.enode \
             and not args.delmaps \
-            and not args.shortest \
+            and not args.findpath \
             and not args.mani:
         map_name = args.delamap
         env_name = args.e
@@ -93,7 +92,7 @@ def main():
             and not args.enode \
             and not args.delamap \
             and not args.delmaps \
-            and not args.shortest \
+            and not args.findpath \
             and not args.mani:
 
         save_env_details(args.oe)  # printing the metadata
@@ -108,7 +107,7 @@ def main():
             and not args.enode \
             and not args.delamap \
             and not args.delmaps \
-            and not args.shortest \
+            and not args.findpath \
             and not args.mani:
         fetch_maps(args.e)
     # --------------------------------------------------------------------------------------------------------------
@@ -122,7 +121,7 @@ def main():
             and not args.enode \
             and not args.delamap \
             and not args.delmaps \
-            and not args.shortest \
+            and not args.findpath \
             and not args.mani:
         fetch_maps(args.e, args.m)
     # --------------------------------------------------------------------------------------------------------------
@@ -136,7 +135,7 @@ def main():
             and not args.oe \
             and not args.delamap \
             and not args.delmaps \
-            and not args.shortest \
+            and not args.findpath \
             and not args.mani:
 
         map_name = f"{args.u}"
@@ -147,7 +146,7 @@ def main():
         save_env_details(args.e)
     # --------------------------------------------------------------------------------------------------------------
 
-    # Find the shortest path between two nodes ---------------------------------------------------------------------
+    # Find the path between two nodes ---------------------------------------------------------------------
     elif args.e \
             and not args.m \
             and not args.u \
@@ -156,22 +155,18 @@ def main():
             and not args.enode \
             and not args.delamap \
             and not args.delmaps \
-            and args.shortest \
+            and args.findpath \
             and not args.mani:
 
         env_obj = fetch_environment(args.e)
-        starting_node_name = args.shortest[0]
-        last_node_name = args.shortest[1]
+        starting_node_name = args.findpath[0]
+        last_node_name = args.findpath[1]
 
-        # TODO Peridocities calculation method to be called here, until then hardcoded values
-        periodicities = [3600]
+        shortest_path_nodes, shortest_path_maps = get_path(env_obj=env_obj,
+                                                           starting_node_name=starting_node_name,
+                                                           end_node_name=last_node_name)
 
-        shortest_path_nodes, shortest_path_maps = get_shortest_path(env_obj=env_obj,
-                                                                    starting_node_name=starting_node_name,
-                                                                    end_node_name=last_node_name,
-                                                                    periodicities=periodicities)
-
-        print_shortest_path(shortest_path_nodes, shortest_path_maps)
+        print_path(shortest_path_nodes, shortest_path_maps)
 
         # # fetching the maps corresponding to shortest path
         # if shortest_path_maps:
@@ -189,7 +184,7 @@ def main():
             and not args.oe \
             and not args.delamap \
             and not args.delmaps \
-            and not args.shortest \
+            and not args.findpath \
             and args.mani:
 
         map_name = args.u

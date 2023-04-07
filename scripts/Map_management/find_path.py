@@ -165,7 +165,7 @@ def a_star(nodes_list, starting_node_name, ending_node_name, final_cost):
     return shortest_path_nodes, shortest_path_maps
 
 
-def get_shortest_path(env_obj, starting_node_name, end_node_name, periodicities):
+def get_path(env_obj, starting_node_name, end_node_name):
     """
     Calls A-star or dijkstra algorithm (based on the USE_A_STAR flag)
     Args:
@@ -190,7 +190,14 @@ def get_shortest_path(env_obj, starting_node_name, end_node_name, periodicities)
 
     # calculate the cost
     env_name = env_obj.name
-    final_cost = final_cost_calc(env_name, periodicities=periodicities)
+    periodicities = env_obj.fremen_output['time_periods']
+    amplitudes = env_obj.fremen_output['amplitudes']
+
+    # Hardcoded values for testing in case needed
+    # periodicities = [31831.57894737,      13440.,               24192.,               23261.53846154,        30240.]
+    # amplitudes = [0.038102326504664503, 0.03572674840148863,  0.03943332208346288, 0.038365230317346496,  0.037481548730897735]
+
+    final_cost = final_cost_calc(env_name, periodicities=periodicities, amplitudes=amplitudes)
 
     if USE_A_STAR:
         shortest_path_nodes, shortest_path_maps = a_star(env_obj.nodes, starting_node_name, end_node_name, final_cost)
@@ -200,7 +207,7 @@ def get_shortest_path(env_obj, starting_node_name, end_node_name, periodicities)
     return shortest_path_nodes, shortest_path_maps
 
 
-def print_shortest_path(shortest_path_nodes_list, shortest_path_maps_list):
+def print_path(shortest_path_nodes_list, shortest_path_maps_list):
     """
     Prints the keys of the names of the shortest path and the sequence of maps for the shortest path
     Args:

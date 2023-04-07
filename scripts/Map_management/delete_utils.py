@@ -4,7 +4,7 @@ import logging
 from constants import CLIENT, MAP_BUCKET, ENV_BUCKET, FIRST_IMAGE_BUCKET, IMAGES_PATH, RESULTS_PATH, LOGS_PATH
 from upload_utils import env_upload, map_upload
 from fetch_utils import fetch_environment, fetch_first_images
-from cost_calculation import image_similarity_matrix_calc
+from cost_calculation import calculate_similarity_matrix_and_periodicities
 
 logging.basicConfig(filename=f"{LOGS_PATH}/delete_utils.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -81,7 +81,7 @@ def delete_a_map(env_name, map_name):
             for map_name in maps_names:
                 images_names.append(f"{env_name}.{map_name}.jpg")
 
-            recalculated_similarity_matrix, recalculated_softmax_similarity_matrix = image_similarity_matrix_calc(env_name, save_plot=False)
+            recalculated_similarity_matrix, recalculated_softmax_similarity_matrix = calculate_similarity_matrix_and_periodicities(env_name, save_plot=False)
 
             env_obj.similarity_matrix = recalculated_similarity_matrix
             env_obj.softmax_similarity_matrix = recalculated_softmax_similarity_matrix

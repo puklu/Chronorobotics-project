@@ -28,7 +28,7 @@ def pyplot_time_cost_line_plot(x_axis_data, y_axis_data, current_time_local, sho
         plt.show()
 
 
-def seaborn_time_cost_line_plot(x_axis_data, y_axis_data, xticks, current_time_local, show_plot=SHOW_PLOT):
+def seaborn_time_cost_line_plot(x_axis_data, y_axis_data, xticks, current_time_local, env_name, show_plot=SHOW_PLOT):
     """
     To plot cost vs timestamp using seaborn
     Args:
@@ -52,13 +52,14 @@ def seaborn_time_cost_line_plot(x_axis_data, y_axis_data, xticks, current_time_l
     ax.grid(True, linewidth=1.0, color='white')
     ax.set_xlabel("Map timestamp", fontsize=12)
     ax.set_ylabel("Cost [-]", fontsize=12)
-    plt.savefig(f"{PLOTS_PATH}/time_cost.eps", format='eps')
+    # ax.set_ylim(0, 1)
+    plt.savefig(f"{PLOTS_PATH}/{env_name}_time_cost.eps", format='eps')
 
     if show_plot:
         plt.show()
 
 
-def visualise_heatmap(data, xlabels, ylabels, title, show_plot=SHOW_PLOT):
+def visualise_heatmap(data, xlabels, ylabels, title, env_name, show_plot=SHOW_PLOT):
     """
     Plots a heatmap for a given data
     Args:
@@ -71,9 +72,8 @@ def visualise_heatmap(data, xlabels, ylabels, title, show_plot=SHOW_PLOT):
     plt.figure(figsize=(23, 18))
     ax = sns.heatmap(data,xticklabels=xlabels, yticklabels=ylabels, annot=True, fmt=".3f")
     ax.set_title(title, fontsize=16, fontweight='bold')
-
     ax.set_xticklabels(ax.get_xticklabels(), rotation=30, ha='right')
-    plt.savefig(f"{PLOTS_PATH}/similarity_matrix.eps" , format='eps')
+    plt.savefig(f"{PLOTS_PATH}/{env_name}_similarity_matrix.eps" , format='eps')
 
     if show_plot:
         plt.show()
@@ -93,41 +93,48 @@ def visualise_similarity_matrix(env_name):
     visualise_heatmap(similarity_matrix, map_names, map_names, plot_title)
 
 
-def visualise_fft(spectrum, show_plot=SHOW_PLOT):
+def plot_time_series(times, values, show_plot=SHOW_PLOT):
     """
-    Plots magnitude spectrum provided the calculated magnitude spectrum
-    Args:
-        spectrum:
-        show_plot: Saves plot to results/plots/ directory if set to True. True by default
 
+    Args:
+        times:
+        values:
+        show_plot:
 
     Returns:
 
     """
-    # plot the magnitude spectrum
-    plt.imshow(spectrum, cmap='gray')
+    plt.figure(figsize=(23, 12))
+    ax = sns.scatterplot(x=times, y=values, marker='o', s=50)
+    ax.set_facecolor('#F0F0F0')
+    # ax.set_xticklabels(times, rotation=30, ha='right')
+    ax.set_title(f"Time series to calculate the periodicities", fontsize=16, fontweight='bold')
+    ax.grid(True, linewidth=0.5, color='white')
+    ax.set_xlabel("Time difference[sec]", fontsize=12)
+    ax.set_ylabel("Value [-]", fontsize=12)
+
+    # plt.scatter(times,values)
+    plt.savefig(f"{PLOTS_PATH}/time_series.eps", format='eps')
 
     if show_plot:
         plt.show()
 
 
-def visualise_fft_for_env(env_name):
-    """
-    Plots spectrum for an environment
-    Args:
-        env_name: Name of the environment
+def plot_predicted_timeseries(FreMEn_class, times, values, show_plot=SHOW_PLOT):
+    plt.figure(figsize=(23, 12))
+    ax = sns.scatterplot(x=times, y=values, marker='o', s=50, label="Actual")
+    predicted_values = FreMEn_class.predict(times)
+    ax = sns.scatterplot(x=times, y=predicted_values, marker='o', s=50, label='Predicted')
+    ax.set_facecolor('#F0F0F0')
 
-    Returns:
+    # ax.set_xticklabels(times, rotation=30, ha='right')
+    ax.set_title(f"Actual vs predicted time series", fontsize=16, fontweight='bold')
+    ax.grid(True, linewidth=0.5, color='white')
+    ax.set_xlabel("Time difference[sec]", fontsize=12)
+    ax.set_ylabel("Value [-]", fontsize=12)
 
-    """
-    from fetch_utils import fetch_environment
-    from cost_calculation import calculate_fft
-    env_obj = fetch_environment(env_name)  # fetching the env object
-    maps_names = env_obj.map_metadata['maps_names']
-    similarity_matrix = env_obj.similarity_matrix
-    spectrum = calculate_fft(similarity_matrix)
+    # plt.scatter(times,values)
+    plt.savefig(f"{PLOTS_PATH}/predicted_time_series.eps", format='eps')
 
-    # pyplot_time_cost_line_plot(maps_names, spectrum[0], current_time_local= "lol")
-    visualise_heatmap(spectrum, maps_names, maps_names, 'fft')
-    # visualise_fft(spectrum)
-
+    if show_plot:
+        plt.show()

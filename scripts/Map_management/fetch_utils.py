@@ -27,15 +27,23 @@ def save_env_details(env_name):
 
     if meta_data_dict:
         # a dictionary to save all data as JSON
-        env_details = {"neighbours": [],
-                       "start_nodes": [],
-                       "end_nodes": [],
-                       "Similarity_matrix": env_obj.similarity_matrix.tolist(),
+        env_details = {
                        "name": env_obj.name,
-                       "nodes_names": env_obj.nodes_names,
                        "maps_names": meta_data_dict['maps_names'],
+                       "timestamp": meta_data_dict['timestamp'],
+                       # "start_nodes": [],
+                       # "end_nodes": [],
+                       "nodes_names": env_obj.nodes_names,
                        "distance": meta_data_dict['distance'],
-                       "timestamp": meta_data_dict['timestamp']}
+                       "neighbours": [],
+                       "fremen_output": [],
+                       "Softmax_similarity_matrix": env_obj.softmax_similarity_matrix.tolist(),
+                       "Similarity_matrix": env_obj.similarity_matrix.tolist() }
+
+        for item_ in env_obj.fremen_output:
+            env_obj.fremen_output[item_] = env_obj.fremen_output[item_].tolist()
+
+        env_details["fremen_output"] = env_obj.fremen_output
 
         # print(f"env name: {env_obj.name}")
         # print(f"nodes in the env: {env_obj.nodes_names}")
@@ -61,7 +69,7 @@ def save_env_details(env_name):
 
             env_details["neighbours"].append(neighbours)
 
-        with open(f"{RESULTS_PATH}/env_details.json", "w") as f:
+        with open(f"{RESULTS_PATH}/{env_name}.json", "w") as f:
             json.dump(env_details, f)
 
         # visualising the environment graph ------------------------------------------------
@@ -78,7 +86,7 @@ def save_env_details(env_name):
         g.attr(rankdir='LR')
         g.graph_attr['label'] = f"Graph representation of {env_obj.name}"
         g.graph_attr['labelloc'] = 'b'
-        g.render(f"{RESULTS_PATH}/env_graph", format='eps')
+        g.render(f"{RESULTS_PATH}/{env_name}_graph", format='eps')
         # --------------------------------------------------------------------------------
 
         print(f"Details for {env_name} downloaded to {RESULTS_PATH}")

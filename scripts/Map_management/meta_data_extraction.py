@@ -4,7 +4,7 @@ import tzlocal
 
 from load_map import load_map
 from graph_creation import create_graph
-from cost_calculation import image_similarity_matrix_update
+from cost_calculation import image_similarity_matrix_update, calculate_timeseries, calculate_periodicities
 from fetch_utils import fetch_first_images
 from constants import IMAGES_PATH
 
@@ -35,7 +35,7 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     # env_obj.map_metadata['distances'].append(distances)
     env_obj.map_metadata['distance'].append(distance)  # the length of the path
 
-    # ---------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
     '''
         Calculating timestamp for the map
         The starting point of times is assumed to be the timestamp for the map
@@ -50,14 +50,17 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
 
     env_obj.map_metadata['timestamp'].append((starting_timestamp, local_time))
 
-    # ---------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------------------
 
-    # # Updating the similarity matrix for the environment ------------------------------
+    # # Updating the similarity matrix for the environment --------------------------------------------
 
     # first downloading all the first images for all the maps of the environment from the db
     fetch_first_images(env_obj)
 
     maps_names = env_obj.map_metadata['maps_names']
+    maps_timestamps_with_local = env_obj.map_metadata['timestamp']
+    maps_timestamps_local = [tsl[1] for tsl in maps_timestamps_with_local]
+    maps_timestamps = [ts[0] for ts in maps_timestamps_with_local]
     similarity_matrix_for_env = env_obj.similarity_matrix
 
     images_names = []
@@ -65,7 +68,7 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
         images_names.append(f"{env_name}.{map_name}.jpg")
 
     # the updated similarity matrix
-    updated_similarity_matrix, updated_softmax_similarity_matrix = image_similarity_matrix_update(similarity_matrix_for_env, images_names)
+    updated_similarity_matrix, updated_softmax_similarity_matrix = image_similarity_matrix_update(similarity_matrix_for_env, images_names, maps_timestamps_local)
 
     env_obj.similarity_matrix = updated_similarity_matrix
     env_obj.softmax_similarity_matrix = updated_softmax_similarity_matrix
@@ -75,9 +78,26 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
         for file in files:
             os.remove(f"{IMAGES_PATH}/{file}")
 
-    # ---------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------------
 
-    # # creating Nodes ------------------------------------------------------
+    # calculate time series -------------------------------------------------------------------------
+    times, values = calculate_timeseries(similarity_matrix=updated_softmax_similarity_matrix, timestamps=maps_timestamps)
+    env_obj.time_series['times'] = times
+    env_obj.time_series['values'] = values
+
+    # -----------------------------------------------------------------------------------------------
+
+    # Calculate periodicities -----------------------------------------------------------------------
+    amplitudes, omegas, time_periods, phis = calculate_periodicities(times=times, values=values)
+
+    env_obj.fremen_output['amplitudes'] = amplitudes
+    env_obj.fremen_output['omegas'] = omegas
+    env_obj.fremen_output['time_periods'] = time_periods
+    env_obj.fremen_output['phis'] = phis
+
+    # -----------------------------------------------------------------------------------------------
+
+    # # creating Nodes ------------------------------------------------------------------------------
     start_node, end_node = create_graph(env_obj, start_node_name, end_node_name, map_name, distance)
 
     env_obj.map_metadata['start_node'].append(start_node)

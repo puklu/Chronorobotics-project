@@ -12,6 +12,12 @@ class Environment:
         self.edges = []
         self.similarity_matrix = []
         self.softmax_similarity_matrix = []
+        self.time_series = {'times': [],
+                            'values': []}
+        self.fremen_output = {'amplitudes': [],
+                              'omegas': [],
+                              'time_periods': [],
+                              'phis': []}
         self.map_metadata = {'maps_names': [],
                              'images': [],
                              'trans': [],

@@ -70,7 +70,7 @@ def visualise_heatmap(data, xlabels, ylabels, title, env_name, show_plot=SHOW_PL
 
     """
     plt.figure(figsize=(23, 18))
-    ax = sns.heatmap(data,xticklabels=xlabels, yticklabels=ylabels, annot=True, fmt=".3f")
+    ax = sns.heatmap(data,xticklabels=xlabels, yticklabels=ylabels, linewidths=0.005, annot=True, fmt=".3f")
     ax.set_title(title, fontsize=16, fontweight='bold')
     ax.set_xticklabels(ax.get_xticklabels(), rotation=30, ha='right')
     plt.savefig(f"{PLOTS_PATH}/{env_name}_similarity_matrix.eps" , format='eps')

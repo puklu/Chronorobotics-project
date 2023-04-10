@@ -25,10 +25,11 @@ class FreMEn:
         """
         input: times ... numpy array of floats, vector of times of measurings expects large amount of data
                values ... numpy array of floats, vector of measured values, len(values) = len(times)
-               no_freqs ... integer, number of periods that define the model longest float, length of the longest wanted period in default
-                              units
-               shortest float, length of the shortest wanted period in default units freqs_step_type ... string, define the way of frequency series generation
-                                           possible: 'base', 'uniform', 'random'
+               no_freqs ... integer, number of periods that define the model longest float, length of the longest wanted
+                            period in default units
+               shortest ... float, length of the shortest wanted period in default units
+               freqs_step_type ... string, define the way of frequency series generation possible: 'base', 'uniform', 'random'
+
         output: self, define all attributes
         objective: to build a model of the time series (times, values)
         """
@@ -39,12 +40,11 @@ class FreMEn:
         longest = float(params['longest'])
         shortest = float(params['shortest'])
         self.freqs_step_type = params['freqs_step_type']
-    
+
         # print('values: ' + str(values))
         self.gamma_0 = float(np.mean(values))
         self.phis, self.alphas, self.omegas = self._get_model(times, values, no_freqs, longest, shortest)
         return self
-
 
     def predict(self, pred_times, saturation=0.0, probability=True):
         """
@@ -63,8 +63,8 @@ class FreMEn:
         else:
             prediction = np.ones_like(pred_times) * self.gamma_0
         if probability:
-            prediction[prediction > 1.-saturation] = 1. - saturation
-            prediction[prediction < 0.+saturation] = 0. + saturation
+            prediction[prediction > 1. - saturation] = 1. - saturation
+            prediction[prediction < 0. + saturation] = 0. + saturation
         return prediction
 
     def _get_model(self, times, values, no_freqs, longest, shortest, do_not_use=False):
@@ -85,7 +85,8 @@ class FreMEn:
             no_freqs = len(tested_omegas)
         else:
             no_freqs = min(no_freqs, len(tested_omegas))
-        phis, alphas, omegas = self._fit_nufft_3(x=times, y=values-self.gamma_0, c=tested_omegas, nFreqs=no_freqs)
+
+        phis, alphas, omegas = self._fit_nufft_3(x=times, y=values - self.gamma_0, c=tested_omegas, nFreqs=no_freqs)
         return phis, alphas, omegas
 
     def _build_frequencies(self, longest, shortest):
@@ -101,7 +102,7 @@ class FreMEn:
         elif self.freqs_step_type == 'uniform_periods':
             tested_omegas = 2. * np.pi / (longest - (np.float64(np.arange(k)) * shortest))
         else:  # unknown or orthogonal (FreMEn default)
-            tested_omegas = (2.0*np.pi*np.float64(np.arange(k) + 1)) / float(longest)
+            tested_omegas = (2.0 * np.pi * np.float64(np.arange(k) + 1)) / float(longest)
         return tested_omegas
 
     def _fit_nufft_3(self, x, y, c, nFreqs):
@@ -116,12 +117,14 @@ class FreMEn:
         y = np.array([complex(v, 0.) for v in y])
         N = x.shape[0]
 
-        f = finufft.nufft1d3(x, y, c)#, isign=1)
+        f = finufft.nufft1d3(x, y, c)  # , isign=1)
+
         # commented version should be similar to fremen_numpy.py
         # gammas = 2. * f / N
         # amplitudes = np.absolute(gammas)
         # phase = np.angle(gammas)
-        # next version should be similar to c++ version (both versions are mathematically equal)
+
+        # following version should be similar to c++ version (both versions are mathematically equal)
         amplitudes = 2. * np.absolute(f) / N
         phase = np.angle(f)
 
@@ -136,13 +139,13 @@ class FreMEn:
 
 
 if __name__ == "__main__":
-    times = np.arange(0,30, 1/10)
+    times = np.arange(0,20, 1/100)
 
     times1 = times[14::-1]
     times2 = times[30:14:-1]
     new_times = np.concatenate((times1, times2), axis=0)
 
-    values = np.sin(2*np.pi*1*times) + np.sin(2*np.pi*2*times) + 0.5*np.sin(2*np.pi*4*times)
+    values = np.sin(2*np.pi*1*times) + np.sin(2*np.pi*2*times) # + 0.5*np.sin(2*np.pi*4*times)
 
     values1 = values[14::-1]
     values2 = values[30:14:-1]
@@ -158,6 +161,7 @@ if __name__ == "__main__":
     print(amplitudes)
     print(omegas)
     print(phis)
+    print(2*np.pi/omegas)
 
     y = fre.predict(times)
 

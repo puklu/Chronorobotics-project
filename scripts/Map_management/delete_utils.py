@@ -3,7 +3,7 @@ import logging
 
 from constants import CLIENT, MAP_BUCKET, ENV_BUCKET, FIRST_IMAGE_BUCKET, IMAGES_PATH, RESULTS_PATH, LOGS_PATH
 from upload_utils import env_upload, map_upload
-from fetch_utils import fetch_environment, fetch_first_images
+from fetch_utils import fetch_environment, fetch_first_images, save_env_details
 from cost_calculation import calculate_similarity_matrix_and_periodicities
 
 logging.basicConfig(filename=f"{LOGS_PATH}/delete_utils.log", level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -36,6 +36,15 @@ def delete_a_map(env_name, map_name):
             del env_obj.map_metadata['end_node'][idx]
             del env_obj.map_metadata['times'][idx]
             del env_obj.map_metadata['timestamp'][idx]
+            # del env_obj.map_metadata['time_costs'][idx]
+
+            # deleting the env object and the last map and first image if there are no more maps in the environment
+            if not env_obj.map_metadata['maps_names']:
+                # deleting the env_obj
+                CLIENT.remove_object(ENV_BUCKET, env_name)  # env object deleted
+                CLIENT.remove_object(MAP_BUCKET, map_obj_name)  # MAP DELETED from the db
+                CLIENT.remove_object(FIRST_IMAGE_BUCKET, f"{env_name}.{map_name}.jpg")  # FIRST IMAGE DELETED from the db
+                return
 
             # updating the neighbours of the environment
             s_idx = env_obj.nodes.index(start_node)
@@ -43,25 +52,25 @@ def delete_a_map(env_name, map_name):
 
             # index of end_node in the list of neighbours of start_node to update it
             neighbours_of_start_node = env_obj.nodes[s_idx].neighbours
-            for m in range(len(neighbours_of_start_node)):
-                if neighbours_of_start_node[m][1] == map_name:
-                    idx_neigh_start_node = m
-                    break
-            del neighbours_of_start_node[idx_neigh_start_node]
+            if neighbours_of_start_node:
+                for m in range(len(neighbours_of_start_node)):
+                    if neighbours_of_start_node[m][1] == map_name:
+                        idx_neigh_start_node = m
+                        break
+                del neighbours_of_start_node[idx_neigh_start_node]
 
             # index of start_node in the list of neighbours of end_node to update it
             neighbours_of_end_node = env_obj.nodes[e_idx].neighbours
-            for n in range(len(neighbours_of_end_node)):
-                if neighbours_of_end_node[n][1] == map_name:
-                    idx_neigh_end_node = n
-                    break
-            del neighbours_of_end_node[idx_neigh_end_node]
+            if neighbours_of_end_node:
+                for n in range(len(neighbours_of_end_node)):
+                    if neighbours_of_end_node[n][1] == map_name:
+                        idx_neigh_end_node = n
+                        break
+                del neighbours_of_end_node[idx_neigh_end_node]
 
             # if a node doesn't have any neighbours left, deleting the node
             if len(neighbours_of_start_node) == 0:
                 del env_obj.nodes[s_idx]
-            if len(neighbours_of_end_node) == 0:
-                del env_obj.nodes[e_idx]
 
             # update env.nodes_names
             env_obj.nodes_names = []
@@ -72,19 +81,22 @@ def delete_a_map(env_name, map_name):
 
             CLIENT.remove_object(FIRST_IMAGE_BUCKET, f"{env_name}.{map_name}.jpg")  # FIRST IMAGE DELETED from the db
 
+            # uploading the updated env object
+            env_upload(env_data=env_obj)
+            print(f"Map: {map_name} deleted and environment: {env_name} updated")
+
             # recalculating similarity matrix ---------------------------------------
-            fetch_first_images(env_obj)
 
-            maps_names = env_obj.map_metadata['maps_names']
+            recalculated_similarity_matrix, recalculated_softmax_similarity_matrix, amplitudes, omegas, time_periods, phis = calculate_similarity_matrix_and_periodicities(env_name)
 
-            images_names = []
-            for map_name in maps_names:
-                images_names.append(f"{env_name}.{map_name}.jpg")
-
-            recalculated_similarity_matrix, recalculated_softmax_similarity_matrix = calculate_similarity_matrix_and_periodicities(env_name, save_plot=False)
-
+            env_obj = fetch_environment(env_name)  # fetching the env details
             env_obj.similarity_matrix = recalculated_similarity_matrix
             env_obj.softmax_similarity_matrix = recalculated_softmax_similarity_matrix
+
+            env_obj.fremen_output['amplitudes'] = amplitudes
+            env_obj.fremen_output['omegas'] = omegas
+            env_obj.fremen_output['time_periods'] = time_periods
+            env_obj.fremen_output['phis'] = phis
 
             # deleting all the downloaded images to save space
             for path, directories, files in os.walk(IMAGES_PATH):

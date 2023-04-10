@@ -381,11 +381,11 @@ def calculate_timeseries(similarity_matrix, timestamps, save_plot=SAVE_PLOTS):
     # print(f"Sorted Times: {sorted(times)}")
     # print(f"Values: {values}")
 
-    if save_plot:
-        plot_time_series(times, values)
-
     times = np.asarray(times)
     values = np.asarray(values)
+
+    if save_plot:
+        plot_time_series(times, values)
 
     return times, values
 
@@ -436,10 +436,14 @@ def calculate_periodicities(times, values,  save_plot=SAVE_PLOTS):
         new_time_periods = np.array([86400, 604800])  # 24 hours and 1 week
         new_omegas = 2*pi/new_time_periods
 
+    new_amplitudes = np.array(new_amplitudes)
+    new_omegas = np.array(new_omegas)
+    new_time_periods = np.array(new_time_periods)
+    new_phis = np.array(new_phis)
     # --------------------------------------------------------------------------------------------------------------
 
     if save_plot:
         plot_predicted_timeseries(FreMEn_class=fremen, times=times, values=values)
 
     # return amplitudes, omegas, time_periods, phis
-    return new_amplitudes, new_omegas, new_time_periods, new_phis
+    return amplitudes, omegas, time_periods, phis

@@ -1,6 +1,7 @@
 import sys
 import csv
 import time
+import os
 
 import numpy as np
 from numpy import sin, pi, cos
@@ -24,6 +25,32 @@ BETA = 1 / 50
 SAVE_PLOTS = True
 
 
+TEST_DATA = {"path0_map0": [1628441543.1538866, "2021-08-08 18:52:23"],
+             "path0_map1": [1628446944.9681673, "2021-08-08 20:22:24"],
+             "path0_map2": [1628457620,         "2021-08-08 23:20:20"],
+             "path0_map3": [1628443562.5771434, "2021-08-08 19:26:02"],
+             "path0_map4": [1628445730.1549253, "2021-08-08 20:02:10"],
+             "path0_map5": [1628532555,         "2021-08-09 20:09:15"],
+             "path0_map6": [1628447864.6729546, "2021-08-08 20:37:44"],
+             "path0_map7": [1628448852.1848671, "2021-08-08 20:54:12"],
+             "path0_map8": [1628450613.950567,  "2021-08-08 21:23:33"],
+             "path0_map9": [1628537656,         "2021-08-09 21:34:16"],
+             "path0_map10": [1628543174,         "2021-08-09 23:06:14"],
+             "path0_map11": [1628629965,         "2021-08-10 23:12:45"],
+             "path0_map12": [1628625016,         "2021-08-10 21:50:16"],
+             "path0_map13": [1628715812,         "2021-08-11 23:03:32"],
+             "path0_map15": [1628698644,         "2021-08-11 18:17:24"],
+             "path0_map16": [1628612717,         "2021-08-10 18:25:17"],
+             "path0_map17": [1628527576,         "2021-08-09 18:46:16"],
+             "path0_map18": [1628533349,         "2021-08-09 20:22:29"],
+             "path0_map19": [1628534238,         "2021-08-09 20:37:18"],
+             "path0_map20": [1628429197,         "2021-08-08 15:26:37"],
+             "path0_map21": [1628516065,         "2021-08-09 15:34:25"],
+             "path0_map22": [1628603830,         "2021-08-10 15:57:10"],
+             "path0_map23": [1628532992,         "2021-08-09 20:16:32"],
+             "path0_map24": [1628620012,         "2021-08-10 20:26:52"]}
+
+
 def final_cost_calc(env_name, periodicities, amplitudes, phis, current_time=CURRENT_SYSTEM_TIME):
     """
 
@@ -36,9 +63,6 @@ def final_cost_calc(env_name, periodicities, amplitudes, phis, current_time=CURR
     Returns:
 
     """
-    # TODO: Remove the following line after testing
-    current_time = 1628412743
-
     time_cost = time_cost_calc(env_name, periodicities, amplitudes, phis, current_time)  # final_cost = {map_name: [map_timestamp, cost]}
 
     if time_cost is None:
@@ -85,16 +109,13 @@ def time_cost_calc(env_name, periodicities, amplitudes, phis, current_time=CURRE
     maps_names = env_map_metadata['maps_names']
     maps_timestamps = []
     distance = []
+
+    # TODO: The following dictionary is just testing data, MUST BE DELETED/COMMENTED AFTER TESTING
+    env_map_metadata['timestamp'] = TEST_DATA
+
     for map_ in maps_names:
         maps_timestamps.append(env_map_metadata['timestamp'][map_][0])
         distance.append(env_map_metadata['distance'][map_])
-
-    print(maps_timestamps)
-    print(distance)
-    # map_timestamps = env_map_metadata['timestamp']
-    # maps_names = env_map_metadata['maps_names']
-    # distance = env_map_metadata['distance']
-    # maps_timestamps = [map_timestamp[0] for map_timestamp in map_timestamps]
 
     N = len(periodicities)
     M = len(maps_timestamps)
@@ -287,31 +308,8 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
 
     map_andTimestamp_andLocal = env_obj.map_metadata['timestamp']
 
-    # TODO: The following dictionary is just testing data, MUST BE DELETED/COMMENTED AFTER TESTING
-    map_andTimestamp_andLocal = {"path0_map0": [1628441543.1538866, "2021-08-08 18:52:23"],
-                                 "path0_map1": [1628446944.9681673, "2021-08-08 20:22:24"],
-                                 "path0_map2": [1628457620,         "2021-08-08 23:20:20"],
-                                 "path0_map3": [1628443562.5771434, "2021-08-08 19:26:02"],
-                                 "path0_map4": [1628445730.1549253, "2021-08-08 20:02:10"],
-                                 "path0_map5": [1628532555,         "2021-08-09 20:09:15"],
-                                 "path0_map6": [1628447864.6729546, "2021-08-08 20:37:44"],
-                                 "path0_map7": [1628448852.1848671, "2021-08-08 20:54:12"],
-                                 "path0_map8": [1628450613.950567,  "2021-08-08 21:23:33"],
-                                 "path0_map9": [1628537656,         "2021-08-09 21:34:16"],
-                                 "path0_map10": [1628543174,         "2021-08-09 23:06:14"],
-                                 "path0_map11": [1628629965,         "2021-08-10 23:12:45"],
-                                 "path0_map12": [1628625016,         "2021-08-10 21:50:16"],
-                                 "path0_map13": [1628715812,         "2021-08-11 23:03:32"],
-                                 "path0_map15": [1628698644,         "2021-08-11 18:17:24"],
-                                 "path0_map16": [1628612717,         "2021-08-10 18:25:17"],
-                                 "path0_map17": [1628527576,         "2021-08-09 18:46:16"],
-                                 "path0_map18": [1628533349,         "2021-08-09 20:22:29"],
-                                 "path0_map19": [1628534238,         "2021-08-09 20:37:18"],
-                                 "path0_map20": [1628429197,         "2021-08-08 15:26:37"],
-                                 "path0_map21": [1628516065,         "2021-08-09 15:34:25"],
-                                 "path0_map22": [1628603830,         "2021-08-10 15:57:10"],
-                                 "path0_map23": [1628532992,         "2021-08-09 20:16:32"],
-                                 "path0_map24": [1628620012,         "2021-08-10 20:26:52"]}
+    # TODO: The following dictionary is just testing data, MUST BE DELETED/COMMENTED AFTER TESTING..works ONLY FOR env0
+    # map_andTimestamp_andLocal = TEST_DATA
 
     map_andTimestamp_andLocal = dict(sorted(map_andTimestamp_andLocal.items(), key=lambda x: x[1][0])) # sorting the dict by timestamps
 
@@ -331,7 +329,7 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
         images_names.append(f"{env_name}.{map_name}.jpg")
 
     names_of_images = images_names
-    num_of_images = len(names_of_images)
+    num_of_images = len(maps_names)
 
     similarity_matrix = np.zeros((num_of_images, num_of_images))
 
@@ -392,6 +390,11 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
     # print(f"calculating timeseries time: {time6-time5}")
     # print(f"calculating periodicities: {time7-time6}")
     # print(f"visualising time: {time8-time7}")
+
+    # deleting all the downloaded images to save space
+    for path, directories, files in os.walk(IMAGES_PATH):
+        for file in files:
+            os.remove(f"{IMAGES_PATH}/{file}")
 
     return similarity_matrix, softmax_similarity_matrix, amplitudes, omegas, time_periods, phis
 

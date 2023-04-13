@@ -4,9 +4,5 @@ digraph {
 	a [fillcolor=darkturquoise fontcolor=black style=filled]
 	b [fillcolor=darkturquoise fontcolor=black style=filled]
 	a -> b [label=path0_map0 color=black fontcolor=black]
-	edge [fontsize=5]
-	a [fillcolor=darkturquoise fontcolor=black style=filled]
-	b [fillcolor=darkturquoise fontcolor=black style=filled]
-	a -> b [label=path0_map1 color=black fontcolor=black]
 	rankdir=LR
 }

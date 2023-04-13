@@ -29,25 +29,20 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     env_name = env_obj.name
     # if map_name not in env_obj.map_metadata['maps_names']:
     env_obj.map_metadata['maps_names'].append(map_name)
-    # env_obj.map_metadata['images'].append(images)
-    # env_obj.map_metadata['trans'].append(trans)
-    env_obj.map_metadata['times'].append(times)
-    # env_obj.map_metadata['distances'].append(distances)
-
-    # env_obj.map_metadata['distance'].append(distance)  # the length of the path
+    env_obj.map_metadata['images'][map_name] = images
+    env_obj.map_metadata['trans'][map_name] = trans
+    env_obj.map_metadata['times'][map_name] = times
+    env_obj.map_metadata['distances'][map_name] = distances
     env_obj.map_metadata['distance'][map_name] = distance
+
     # -------------------------------------------------------------------------------------------------
     '''
         Calculating timestamp for the map
         The starting point of times is assumed to be the timestamp for the map
     '''
-    length_of_times = len(env_obj.map_metadata['times'][0][0])
     starting_timestamp = times[0][0].to_time()  # TODO: this may need some change
-    # average_timestamp = int(env_obj.map_metadata['times'][0][0][int(length_of_times / 2)].to_time())
-
     local_timezone = tzlocal.get_localzone()  # get pytz timezone
     local_time = datetime.fromtimestamp(starting_timestamp, local_timezone).strftime('%Y-%m-%d %H:%M:%S')
-    # local_time = datetime.utcfromtimestamp(starting_timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
     env_obj.map_metadata['timestamp'][map_name] = [starting_timestamp, local_time]
 

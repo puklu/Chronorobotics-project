@@ -43,7 +43,7 @@ def main():
             and not args.mani:
 
         # batch_upload()  # upload to db # TODO: SHOULD BE UNCOMMENTED AFTER TESTING IS DONE. THE FOLLOWING LINES SHOULD BE REMOVED.
-        env_name = 'env0'
+        env_name = 'test'
 
             # TODO: Hardcoded values below for testing
         # maps_timestamps = [1680933600, 1680948000, 1680969600, 1680980400, 1681020000, 1681034400, 1681056000, 1681066800, 1681106400, 1681120800, 1681142400, 1681153200, 1681192800, 1681207200, 1681228800, 1681239600, 1681279200, 1681293600]
@@ -77,10 +77,11 @@ def main():
         #                                       [0.0, 1.0, 0.0, 0.0, 0.0, 1.0]])
 
         # time_cost_calc(env_name, [3600], [1])  # [3600, 86400, 604800, 2592000, 31536000])
-        _, softmax_similarity_matrix, amplitudes, omegas, time_periods, _ = calculate_similarity_matrix_and_periodicities(env_name)
-        # time_periods = [3600, 3*3600]
-        # amplitudes = [1, 0.5]
-        # final_cost_calc(env_name, time_periods, amplitudes)
+        # _, softmax_similarity_matrix, amplitudes, omegas, time_periods, phis = calculate_similarity_matrix_and_periodicities(env_name)
+        time_periods = [3600]
+        amplitudes = [1]
+        phis =[0]
+        final_cost_calc(env_name, time_periods, amplitudes, phis)
 
         # times, values = calculate_timeseries(softmax_similarity_matrix, maps_timestamps)
         # print(times/3600)

@@ -33,8 +33,9 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     # env_obj.map_metadata['trans'].append(trans)
     env_obj.map_metadata['times'].append(times)
     # env_obj.map_metadata['distances'].append(distances)
-    env_obj.map_metadata['distance'].append(distance)  # the length of the path
 
+    # env_obj.map_metadata['distance'].append(distance)  # the length of the path
+    env_obj.map_metadata['distance'][map_name] = distance
     # -------------------------------------------------------------------------------------------------
     '''
         Calculating timestamp for the map
@@ -48,7 +49,6 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     local_time = datetime.fromtimestamp(starting_timestamp, local_timezone).strftime('%Y-%m-%d %H:%M:%S')
     # local_time = datetime.utcfromtimestamp(starting_timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
-    # env_obj.map_metadata['timestamp'].append((starting_timestamp, local_time))
     env_obj.map_metadata['timestamp'][map_name] = [starting_timestamp, local_time]
 
     # -------------------------------------------------------------------------------------------------
@@ -87,14 +87,14 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     # -----------------------------------------------------------------------------------------------
 
     # calculate time series -------------------------------------------------------------------------
-    times, values = calculate_timeseries(similarity_matrix=updated_softmax_similarity_matrix, timestamps=maps_timestamps)
+    times, values = calculate_timeseries(similarity_matrix=updated_softmax_similarity_matrix, timestamps=maps_timestamps, env_name=env_name)
     env_obj.time_series['times'] = times
     env_obj.time_series['values'] = values
 
     # -----------------------------------------------------------------------------------------------
 
     # Calculate periodicities -----------------------------------------------------------------------
-    amplitudes, omegas, time_periods, phis = calculate_periodicities(times=times, values=values)
+    amplitudes, omegas, time_periods, phis = calculate_periodicities(times=times, values=values, env_name=env_name)
 
     env_obj.fremen_output['amplitudes'] = amplitudes
     env_obj.fremen_output['omegas'] = omegas

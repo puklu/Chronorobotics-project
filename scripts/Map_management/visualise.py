@@ -71,9 +71,10 @@ def visualise_heatmap(data, xlabels, ylabels, title, env_name, show_plot=SHOW_PL
     """
     plt.figure(figsize=(23, 18))
     ax = sns.heatmap(data,xticklabels=xlabels, yticklabels=ylabels, linewidths=0.005, annot=True, fmt=".3f")
-    ax.set_title(title, fontsize=16, fontweight='bold')
-    ax.set_xticklabels(ax.get_xticklabels(), rotation=30, ha='right')
-    plt.savefig(f"{PLOTS_PATH}/{env_name}_similarity_matrix.eps" , format='eps')
+    ax.set_title(title, fontsize=20, fontweight='bold')
+    ax.set_xticklabels(ax.get_xticklabels(), rotation=30, ha='right', fontsize=16)
+    ax.set_yticklabels(ax.get_yticklabels(), fontsize=16)
+    plt.savefig(f"{PLOTS_PATH}/{env_name}_similarity_matrix.eps", format='eps')
 
     if show_plot:
         plt.show()
@@ -93,7 +94,7 @@ def visualise_similarity_matrix(env_name):
     visualise_heatmap(similarity_matrix, map_names, map_names, plot_title)
 
 
-def plot_time_series(times, values, show_plot=SHOW_PLOT):
+def plot_time_series(times, values, env_name, show_plot=SHOW_PLOT):
     """
 
     Args:
@@ -105,7 +106,9 @@ def plot_time_series(times, values, show_plot=SHOW_PLOT):
 
     """
     plt.figure(figsize=(23, 12))
-    ax = sns.scatterplot(x=times, y=values, marker='o', s=50)
+    # ax = sns.scatterplot(x=times, y=values, marker='o', s=50)
+    ax = sns.lineplot(x=times, y=values, marker='o')
+    ax.set_facecolor('#F0F0F0')
     ax.set_facecolor('#F0F0F0')
     # ax.set_xticklabels(times, rotation=30, ha='right')
     ax.set_title(f"Time series to calculate the periodicities", fontsize=16, fontweight='bold')
@@ -114,17 +117,19 @@ def plot_time_series(times, values, show_plot=SHOW_PLOT):
     ax.set_ylabel("Value [-]", fontsize=12)
 
     # plt.scatter(times,values)
-    plt.savefig(f"{PLOTS_PATH}/time_series.eps", format='eps')
+    plt.savefig(f"{PLOTS_PATH}/{env_name}_time_series.eps", format='eps')
 
     if show_plot:
         plt.show()
 
 
-def plot_predicted_timeseries(FreMEn_class, times, values, show_plot=SHOW_PLOT):
+def plot_predicted_timeseries(FreMEn_class, times, values, env_name, show_plot=SHOW_PLOT):
     plt.figure(figsize=(23, 12))
-    ax = sns.scatterplot(x=times, y=values, marker='o', s=50, label="Actual")
+    # ax = sns.scatterplot(x=times, y=values, marker='o', s=50, label="Actual")
+    ax = sns.lineplot(x=times, y=values, marker='o', label="Actual")
     predicted_values = FreMEn_class.predict(times)
-    ax = sns.scatterplot(x=times, y=predicted_values, marker='o', s=50, label='Predicted')
+    # ax = sns.scatterplot(x=times, y=predicted_values, marker='o', s=50, label='Predicted')
+    ax = sns.lineplot(x=times, y=predicted_values, marker='o', label='Predicted')
     ax.set_facecolor('#F0F0F0')
 
     # ax.set_xticklabels(times, rotation=30, ha='right')
@@ -134,7 +139,7 @@ def plot_predicted_timeseries(FreMEn_class, times, values, show_plot=SHOW_PLOT):
     ax.set_ylabel("Value [-]", fontsize=12)
 
     # plt.scatter(times,values)
-    plt.savefig(f"{PLOTS_PATH}/predicted_time_series.eps", format='eps')
+    plt.savefig(f"{PLOTS_PATH}/{env_name}_predicted_time_series.eps", format='eps')
 
     if show_plot:
         plt.show()

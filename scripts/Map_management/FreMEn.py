@@ -21,7 +21,7 @@ class FreMEn:
         self.omegas = None
         self.freqs_step_type = None
 
-    def fit(self, times, values, params={'no_freqs': 5, 'longest': 345600., 'shortest': 3600., 'freqs_step_type': 'base'}):
+    def fit(self, times, values, params={'no_freqs': 5, 'longest': 604800., 'shortest': 3600., 'freqs_step_type': 'base'}):
         """
         input: times ... numpy array of floats, vector of times of measurings expects large amount of data
                values ... numpy array of floats, vector of measured values, len(values) = len(times)

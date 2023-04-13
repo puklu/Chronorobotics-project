@@ -23,7 +23,7 @@ class Environment:
                              'trans': [],
                              'times': [],
                              'distances': [],
-                             'distance': [],
+                             'distance': {},
                              'start_node': [],
                              'end_node': [],
                              'timestamp': {},

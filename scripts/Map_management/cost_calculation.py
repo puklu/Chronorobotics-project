@@ -24,7 +24,7 @@ BETA = 1 / 50
 SAVE_PLOTS = True
 
 
-def final_cost_calc(env_name, periodicities, amplitudes, current_time=CURRENT_SYSTEM_TIME):
+def final_cost_calc(env_name, periodicities, amplitudes, phis, current_time=CURRENT_SYSTEM_TIME):
     """
 
     Args:
@@ -39,7 +39,7 @@ def final_cost_calc(env_name, periodicities, amplitudes, current_time=CURRENT_SY
     # TODO: Remove the following line after testing
     current_time = 1628412743
 
-    time_cost = time_cost_calc(env_name, periodicities, amplitudes, current_time)  # final_cost = {map_name: [map_timestamp, cost]}
+    time_cost = time_cost_calc(env_name, periodicities, amplitudes, phis, current_time)  # final_cost = {map_name: [map_timestamp, cost]}
 
     if time_cost is None:
         return
@@ -57,13 +57,14 @@ def final_cost_calc(env_name, periodicities, amplitudes, current_time=CURRENT_SY
     return final_cost
 
 
-def time_cost_calc(env_name, periodicities, amplitudes, current_time=CURRENT_SYSTEM_TIME, save_plot=SAVE_PLOTS):
+def time_cost_calc(env_name, periodicities, amplitudes, phis, current_time=CURRENT_SYSTEM_TIME, save_plot=SAVE_PLOTS):
     """
     Calculates the cost based on the timestamp (unix time) for a map.
     Args:
         env_name: name of the environment for which costs are to be calculated
         periodicities: the significant frequencies present in the maps for an environment
         amplitudes: Magnitude of each frequency element
+        phis:
         current_time (optional): Current time,to be provided in case the cost is to be calculated w.r.t to some
         other time instead of current time.
         save_plot: Set to True to plot the cost
@@ -81,13 +82,19 @@ def time_cost_calc(env_name, periodicities, amplitudes, current_time=CURRENT_SYS
         return
 
     env_map_metadata = fetch_map_metadata(env_obj)
-    map_timestamps = env_map_metadata['timestamp']
     maps_names = env_map_metadata['maps_names']
-    distance = env_map_metadata['distance']
-    maps_timestamps = [map_timestamp[0] for map_timestamp in map_timestamps]
+    maps_timestamps = []
+    distance = []
+    for map_ in maps_names:
+        maps_timestamps.append(env_map_metadata['timestamp'][map_][0])
+        distance.append(env_map_metadata['distance'][map_])
 
-    # periodicities.sort()
-    # maps_timestamps.sort()
+    print(maps_timestamps)
+    print(distance)
+    # map_timestamps = env_map_metadata['timestamp']
+    # maps_names = env_map_metadata['maps_names']
+    # distance = env_map_metadata['distance']
+    # maps_timestamps = [map_timestamp[0] for map_timestamp in map_timestamps]
 
     N = len(periodicities)
     M = len(maps_timestamps)
@@ -108,6 +115,10 @@ def time_cost_calc(env_name, periodicities, amplitudes, current_time=CURRENT_SYS
     amplitudes = np.expand_dims(amplitudes, axis=-1)
     amplitudes = amplitudes.reshape(1, N)
 
+    phis = np.asarray(phis)
+    phis = np.expand_dims(phis, axis=-1)
+    phis = phis.reshape(1, N)
+
     time_difference = maps_timestamps - current_time
 
     omega = 2 * pi / periodicities
@@ -119,7 +130,7 @@ def time_cost_calc(env_name, periodicities, amplitudes, current_time=CURRENT_SYS
 
     # print(amplitudes)
 
-    cosines = -amplitudes*cos(time_difference * omega) + 1  # add 1 to make the values positive
+    cosines = -amplitudes*cos(time_difference * omega - phis) + 1  # add 1 to make the values positive
 
     # cosines = -amplitudes*cos(time_difference * omega)
 
@@ -275,6 +286,33 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
     # time2 = time.time()
 
     map_andTimestamp_andLocal = env_obj.map_metadata['timestamp']
+
+    # TODO: The following dictionary is just testing data, MUST BE DELETED/COMMENTED AFTER TESTING
+    map_andTimestamp_andLocal = {"path0_map0": [1628441543.1538866, "2021-08-08 18:52:23"],
+                                 "path0_map1": [1628446944.9681673, "2021-08-08 20:22:24"],
+                                 "path0_map2": [1628457620,         "2021-08-08 23:20:20"],
+                                 "path0_map3": [1628443562.5771434, "2021-08-08 19:26:02"],
+                                 "path0_map4": [1628445730.1549253, "2021-08-08 20:02:10"],
+                                 "path0_map5": [1628532555,         "2021-08-09 20:09:15"],
+                                 "path0_map6": [1628447864.6729546, "2021-08-08 20:37:44"],
+                                 "path0_map7": [1628448852.1848671, "2021-08-08 20:54:12"],
+                                 "path0_map8": [1628450613.950567,  "2021-08-08 21:23:33"],
+                                 "path0_map9": [1628537656,         "2021-08-09 21:34:16"],
+                                 "path0_map10": [1628543174,         "2021-08-09 23:06:14"],
+                                 "path0_map11": [1628629965,         "2021-08-10 23:12:45"],
+                                 "path0_map12": [1628625016,         "2021-08-10 21:50:16"],
+                                 "path0_map13": [1628715812,         "2021-08-11 23:03:32"],
+                                 "path0_map15": [1628698644,         "2021-08-11 18:17:24"],
+                                 "path0_map16": [1628612717,         "2021-08-10 18:25:17"],
+                                 "path0_map17": [1628527576,         "2021-08-09 18:46:16"],
+                                 "path0_map18": [1628533349,         "2021-08-09 20:22:29"],
+                                 "path0_map19": [1628534238,         "2021-08-09 20:37:18"],
+                                 "path0_map20": [1628429197,         "2021-08-08 15:26:37"],
+                                 "path0_map21": [1628516065,         "2021-08-09 15:34:25"],
+                                 "path0_map22": [1628603830,         "2021-08-10 15:57:10"],
+                                 "path0_map23": [1628532992,         "2021-08-09 20:16:32"],
+                                 "path0_map24": [1628620012,         "2021-08-10 20:26:52"]}
+
     map_andTimestamp_andLocal = dict(sorted(map_andTimestamp_andLocal.items(), key=lambda x: x[1][0])) # sorting the dict by timestamps
 
     maps_names = []
@@ -324,11 +362,12 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
 
     # time5 = time.time()
 
-    times, values = calculate_timeseries(similarity_matrix=softmax_similarity_matrix, timestamps=maps_timestamps)
+    # times, values = calculate_timeseries(similarity_matrix=softmax_similarity_matrix, timestamps=maps_timestamps, env_name=env_name)
+    times, values = calculate_timeseries_test(similarity_matrix=softmax_similarity_matrix[0], timestamps=maps_timestamps, env_name=env_name)
 
     # time6 = time.time()
 
-    amplitudes, omegas, time_periods, phis = calculate_periodicities(times=times, values=values)
+    amplitudes, omegas, time_periods, phis = calculate_periodicities(times=times, values=values, env_name=env_name)
 
     # time7 = time.time()
 
@@ -357,7 +396,7 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
     return similarity_matrix, softmax_similarity_matrix, amplitudes, omegas, time_periods, phis
 
 
-def calculate_timeseries(similarity_matrix, timestamps, save_plot=SAVE_PLOTS):
+def calculate_timeseries(similarity_matrix, timestamps, env_name, save_plot=SAVE_PLOTS):
     """
     Creates a time series for the similarity matrix
     Args:
@@ -393,12 +432,37 @@ def calculate_timeseries(similarity_matrix, timestamps, save_plot=SAVE_PLOTS):
     values = np.asarray(values)
 
     if save_plot:
-        plot_time_series(times, values)
+        plot_time_series(times/3600, values, env_name=env_name)
 
     return times, values
 
 
-def calculate_periodicities(times, values,  save_plot=SAVE_PLOTS):
+def calculate_timeseries_test(similarity_matrix, timestamps, env_name, save_plot=SAVE_PLOTS):
+    """
+    Creates a time series for the similarity matrix
+    Args:
+        similarity_matrix: 2 dimensional similarity matrix
+        timestamps: A list of timestamps of the maps corresponding to the similarity matrix
+
+    Returns:
+        times: a list containing the difference of the timestamps of the similarity matrix
+        values: the value of the similarity matrix corresponding to the timestamps whose difference is in times list
+    """
+    print("Calculating time series....")
+
+    values = similarity_matrix
+    times = timestamps
+
+    times = np.asarray(times)
+    values = np.asarray(values)
+
+    if save_plot:
+        plot_time_series(times/3600, values, env_name=env_name)
+
+    return times, values
+
+
+def calculate_periodicities(times, values, env_name, save_plot=SAVE_PLOTS):
     """
     Calculates non uniform fft for a timeseries. FreMEn class is used. Being used for finding the frequencies present in
     the data for the environment.
@@ -451,7 +515,7 @@ def calculate_periodicities(times, values,  save_plot=SAVE_PLOTS):
     # --------------------------------------------------------------------------------------------------------------
 
     if save_plot:
-        plot_predicted_timeseries(FreMEn_class=fremen, times=times, values=values)
+        plot_predicted_timeseries(FreMEn_class=fremen, times=times, values=values, env_name=env_name)
 
     # return amplitudes, omegas, time_periods, phis
     return amplitudes, omegas, time_periods, phis

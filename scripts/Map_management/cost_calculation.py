@@ -177,7 +177,7 @@ def image_similarity_matrix_update(similarity_matrix, images_names, maps_timesta
     """
     When a new map is uploaded for an environment, the similarity matrix needs to be calculated again for the environment.
     This method takes in the current similarity matrix of the environment, and then updates it taking in consideration the
-    map being uploaded.
+    map being uploaded. The matrix is NOT sorted by timestamps here.
     Args:
         similarity_matrix: The current similarity matrix for the environment.
         images_names: Names of the (first) images of all the maps which are stored in <IMAGES_PATH>.
@@ -256,7 +256,7 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
     Doesn't use the matrix stored in the db. Recalculates again for the environment by downloading the first images
     of each map. Plots and saves the matrix as well. Doesn't update the matrix stored in the database.
     So useful in case matrix needs to be visualised again for any reason. Calculates the times series followed by the
-    calculation of periodicities.
+    calculation of periodicities. THE MATRIX IS SORTED BY TIME HERE.
     Args:
         env_name: Name of the environment for which the matrix needs to be calculated
         save_plot: to plot heatmap of the matrix
@@ -273,10 +273,18 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
     # time1 = time.time()
     fetch_first_images(env_obj)
     # time2 = time.time()
-    maps_names = env_obj.map_metadata['maps_names']
-    maps_timestamps_and_local = env_obj.map_metadata['timestamp']
-    maps_timestamps_local = [tsl[1] for tsl in maps_timestamps_and_local]
-    maps_timestamps = [ts[0] for ts in maps_timestamps_and_local]
+
+    map_andTimestamp_andLocal = env_obj.map_metadata['timestamp']
+    map_andTimestamp_andLocal = dict(sorted(map_andTimestamp_andLocal.items(), key=lambda x: x[1][0])) # sorting the dict by timestamps
+
+    maps_names = []
+    maps_timestamps_local = []
+    maps_timestamps = []
+
+    for item_ in map_andTimestamp_andLocal.items():
+        maps_names.append(item_[0])
+        maps_timestamps.append(item_[1][0])
+        maps_timestamps_local.append(item_[1][1])
 
     # time3 = time.time()
 

@@ -21,7 +21,7 @@ class FreMEn:
         self.omegas = None
         self.freqs_step_type = None
 
-    def fit(self, times, values, params={'no_freqs': 5, 'longest': 604800., 'shortest': 3600., 'freqs_step_type': 'base'}):
+    def fit(self, times, values, params={'no_freqs': 5, 'longest': 345600., 'shortest': 3600., 'freqs_step_type': 'base'}):
         """
         input: times ... numpy array of floats, vector of times of measurings expects large amount of data
                values ... numpy array of floats, vector of measured values, len(values) = len(times)
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     times2 = times[30:14:-1]
     new_times = np.concatenate((times1, times2), axis=0)
 
-    values = np.sin(2*np.pi*1*times) + np.sin(2*np.pi*2*times) # + 0.5*np.sin(2*np.pi*4*times)
+    values = np.sin(2*np.pi*1*times) + np.sin(2*np.pi*2*times)  # + 0.5*np.sin(2*np.pi*4*times)
 
     values1 = values[14::-1]
     values2 = values[30:14:-1]

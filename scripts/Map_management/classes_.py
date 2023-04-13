@@ -26,7 +26,7 @@ class Environment:
                              'distance': [],
                              'start_node': [],
                              'end_node': [],
-                             'timestamp': [],
+                             'timestamp': {},
                              'time_costs': None
                              }
 

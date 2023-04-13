@@ -48,7 +48,8 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     local_time = datetime.fromtimestamp(starting_timestamp, local_timezone).strftime('%Y-%m-%d %H:%M:%S')
     # local_time = datetime.utcfromtimestamp(starting_timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
-    env_obj.map_metadata['timestamp'].append((starting_timestamp, local_time))
+    # env_obj.map_metadata['timestamp'].append((starting_timestamp, local_time))
+    env_obj.map_metadata['timestamp'][map_name] = [starting_timestamp, local_time]
 
     # -------------------------------------------------------------------------------------------------
 
@@ -57,10 +58,15 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     # first downloading all the first images for all the maps of the environment from the db
     fetch_first_images(env_obj)
 
-    maps_names = env_obj.map_metadata['maps_names']
-    maps_timestamps_with_local = env_obj.map_metadata['timestamp']
-    maps_timestamps_local = [tsl[1] for tsl in maps_timestamps_with_local]
-    maps_timestamps = [ts[0] for ts in maps_timestamps_with_local]
+    maps_names = []
+    maps_timestamps_local = []
+    maps_timestamps = []
+
+    for item_ in env_obj.map_metadata['timestamp'].items():
+        maps_names.append(item_[0])
+        maps_timestamps.append(item_[1][0])
+        maps_timestamps_local.append(item_[1][1])
+
     similarity_matrix_for_env = env_obj.similarity_matrix
 
     images_names = []

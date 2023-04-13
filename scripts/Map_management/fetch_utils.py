@@ -21,6 +21,7 @@ def save_env_details(env_name):
     Args:
         env_name: name of the environment for which details need to be saved
      """
+    print("Saving environment details...")
     g = graphviz.Digraph()  # for graph visualisation
     env_obj = fetch_environment(env_name)  # fetching the env object
     meta_data_dict = fetch_map_metadata(env_obj)  # getting map metadata from it
@@ -96,7 +97,7 @@ def save_env_details(env_name):
         print(f"Details for {env_name} downloaded to {RESULTS_PATH}")
 
     else:
-        print(f"metadata doesn't exist")
+        print(f"Metadata doesn't exist for {env_name} in the db.")
 
 
 def fetch_map_metadata(env_obj):

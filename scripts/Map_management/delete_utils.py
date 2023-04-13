@@ -29,14 +29,16 @@ def delete_a_map(env_name, map_name):
             end_node = env_obj.map_metadata['end_node'][idx]
 
             # deleting all the data from map_metadata at the index corresponding to the deleted map
-            del env_obj.map_metadata['maps_names'][idx]
-            del env_obj.map_metadata['distance'][idx]
-            # del env_obj.map_metadata['distances'][idx]
+            env_obj.map_metadata['maps_names'].remove(map_name)
+            del env_obj.map_metadata['images'][map_name]
+            del env_obj.map_metadata['trans'][map_name]
+            del env_obj.map_metadata['distance'][map_name]
+            del env_obj.map_metadata['distances'][map_name]
             del env_obj.map_metadata['start_node'][idx]
             del env_obj.map_metadata['end_node'][idx]
-            del env_obj.map_metadata['times'][idx]
-            del env_obj.map_metadata['timestamp'][idx]
-            # del env_obj.map_metadata['time_costs'][idx]
+            del env_obj.map_metadata['times'][map_name]
+            del env_obj.map_metadata['timestamp'][map_name]
+            # del env_obj.map_metadata['time_costs'][map_name]
 
             # deleting the env object and the last map and first image if there are no more maps in the environment
             if not env_obj.map_metadata['maps_names']:
@@ -44,6 +46,7 @@ def delete_a_map(env_name, map_name):
                 CLIENT.remove_object(ENV_BUCKET, env_name)  # env object deleted
                 CLIENT.remove_object(MAP_BUCKET, map_obj_name)  # MAP DELETED from the db
                 CLIENT.remove_object(FIRST_IMAGE_BUCKET, f"{env_name}.{map_name}.jpg")  # FIRST IMAGE DELETED from the db
+                print(f"{env_name},{map_obj_name} deleted from the buckets. This was the last remaining map in the environment.")
                 return
 
             # updating the neighbours of the environment

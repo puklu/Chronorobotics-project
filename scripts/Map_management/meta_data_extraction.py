@@ -27,7 +27,7 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     distance = distances[0][-1]
 
     env_name = env_obj.name
-    # if map_name not in env_obj.map_metadata['maps_names']:
+
     env_obj.map_metadata['maps_names'].append(map_name)
     env_obj.map_metadata['images'][map_name] = images
     env_obj.map_metadata['trans'][map_name] = trans

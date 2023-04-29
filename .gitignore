@@ -7,6 +7,9 @@ images/
 
 temp_test_data/
 
+*.eps
+*.json
+
 
 # Map
 *.npy

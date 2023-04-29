@@ -21,7 +21,7 @@ class FreMEn:
         self.omegas = None
         self.freqs_step_type = None
 
-    def fit(self, times, values, params={'no_freqs': 5, 'longest': 604800., 'shortest': 3600., 'freqs_step_type': 'base'}):
+    def fit(self, times, values, params={'no_freqs': 2, 'longest': 604800., 'shortest': 2*3600., 'freqs_step_type': 'base'}):
         """
         input: times ... numpy array of floats, vector of times of measurings expects large amount of data
                values ... numpy array of floats, vector of measured values, len(values) = len(times)
@@ -139,20 +139,20 @@ class FreMEn:
 
 
 if __name__ == "__main__":
-    times = np.arange(0,20, 1/100)
+    times = np.arange(0,10, 1/100)
 
     times1 = times[14::-1]
     times2 = times[30:14:-1]
     new_times = np.concatenate((times1, times2), axis=0)
 
-    values = np.sin(2*np.pi*1*times) + np.sin(2*np.pi*2*times)  # + 0.5*np.sin(2*np.pi*4*times)
+    values = (0.5)*(0.1*np.sin(2*np.pi*1*times) +1 ) #+ np.sin(2*np.pi*2*times) + 2)  # + 0.5*np.sin(2*np.pi*4*times)
 
     values1 = values[14::-1]
     values2 = values[30:14:-1]
     new_values = np.concatenate((values1, values2), axis=0)
 
     fre = FreMEn()
-    fre.fit(times, values, params={'no_freqs': 5, 'longest' : 4, 'shortest' :0.25, 'freqs_step_type':'base'})
+    fre.fit(times, values, params={'no_freqs': 5, 'longest': 4, 'shortest':0.25, 'freqs_step_type':'base'})
 
     amplitudes = fre.alphas
     omegas = fre.omegas

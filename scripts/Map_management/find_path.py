@@ -194,9 +194,10 @@ def get_path(env_obj, starting_node_name, end_node_name):
     amplitudes = env_obj.fremen_output['amplitudes']
     phis = env_obj.fremen_output['phis']
 
-    # Hardcoded values for testing in case needed
-    # periodicities = [31831.57894737,      13440.,               24192.,               23261.53846154,        30240.]
-    # amplitudes = [0.038102326504664503, 0.03572674840148863,  0.03943332208346288, 0.038365230317346496,  0.037481548730897735]
+    print("Using hardcoded periodicity of 24 hours for experiment")
+    periodicities = [86400]
+    amplitudes = [1]
+    phis = [0]
 
     final_cost = final_cost_calc(env_name, periodicities=periodicities, amplitudes=amplitudes, phis=phis)
 

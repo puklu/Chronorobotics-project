@@ -82,6 +82,7 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     # -----------------------------------------------------------------------------------------------
 
     # calculate time series -------------------------------------------------------------------------
+    # TODO: NEED TO CHANGE THE METHOD THAT IS CALLED TO CALCULATE TIMESERIES
     times, values = calculate_timeseries(similarity_matrix=updated_softmax_similarity_matrix, timestamps=maps_timestamps, env_name=env_name)
     env_obj.time_series['times'] = times
     env_obj.time_series['values'] = values
@@ -89,7 +90,7 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
     # -----------------------------------------------------------------------------------------------
 
     # Calculate periodicities -----------------------------------------------------------------------
-    amplitudes, omegas, time_periods, phis = calculate_periodicities(times=times, values=values, env_name=env_name)
+    amplitudes, omegas, time_periods, phis, fremen = calculate_periodicities(times=times, values=values, env_name=env_name)
 
     env_obj.fremen_output['amplitudes'] = amplitudes
     env_obj.fremen_output['omegas'] = omegas

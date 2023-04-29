@@ -25,9 +25,9 @@ The tool can also be used to fetch maps from the db. Fetches the zipped map file
             
             python main.py -oe <environment-name> 
             
-6. To find the shortest path between two nodes,
+6. To find an optimum path between two nodes,
             
-            python main.py -e <environment-name> -shortest <first-node> <second-node>
+            python main.py -e <environment-name> -findpath <first-node> <second-node>
             
 7. To delete a specific map from an environment,
             

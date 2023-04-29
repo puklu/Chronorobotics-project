@@ -1,5 +1,5 @@
 digraph {
-	graph [label="Graph representation of env0" labelloc=b]
+	graph [label="Graph for env0" labelloc=b]
 	edge [fontsize=5]
 	a [fillcolor=darkturquoise fontcolor=black style=filled]
 	b [fillcolor=darkturquoise fontcolor=black style=filled]

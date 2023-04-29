@@ -5,6 +5,8 @@ objects/maps/
 map_storage/
 images/
 
+temp_test_data/
+
 
 # Map
 *.npy

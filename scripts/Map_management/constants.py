@@ -4,7 +4,7 @@ from pathlib import Path
 from minio import Minio
 import time
 
-CURRENT_SYSTEM_TIME = time.time() # TODO: this might need a change
+CURRENT_SYSTEM_TIME = time.time()  # TODO: this might need a change
 
 
 load_dotenv()

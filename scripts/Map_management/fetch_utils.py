@@ -89,7 +89,7 @@ def save_env_details(env_name):
             g.edge(start_nodes[gidx].key, end_nodes[gidx].key, label=maps_names[gidx], color='black', fontcolor='black')
 
         g.attr(rankdir='LR')
-        g.graph_attr['label'] = f"Graph representation of {env_obj.name}"
+        g.graph_attr['label'] = f"Graph for {env_obj.name}"
         g.graph_attr['labelloc'] = 'b'
         g.render(f"{RESULTS_PATH}/{env_name}_graph", format='eps')
         # --------------------------------------------------------------------------------
@@ -114,50 +114,6 @@ def fetch_map_metadata(env_obj):
         return env_map_metadata
     else:
         return None
-
-
-def fetch_maps_by_time_cost(env_name, periodicities):
-    """
-    TODO: USELESS NOW PROBABLY
-
-    """
-
-    env_obj = fetch_environment(env_name)  # fetching the env object
-
-    if env_obj is None:
-        print(f"{env_name} doesn't exist!")
-        return
-
-    env_map_metadata = fetch_map_metadata(env_obj)
-    suitable_maps = []
-    # suitable_times = suitable_timestamps(periodicities)
-    time_costs = []
-    map_timestamps = env_map_metadata['timestamp']
-
-    maps_timestamps = [map_timestamp[0] for map_timestamp in map_timestamps]
-
-    # TESTING DATA , SHOULD BE COMMENTED OUT TO WORK ON ACTUAL DATA
-    # maps_timestamps = [1678863600, 1678864500, 1678865400, 1678866300, 1678867200, 1678868100, 1678869000, 1678869900,
-    #                    1678870800, 1678871700, 1678872600, 1678892400, 1678914000, 1678950000, 1647327600]
-    #                     Mar 15 2023 08:00:00,
-    #                     Mar 15 2023 08:15:00,
-    #                     Mar 15 2023 08:30:00
-    #                     Mar 15 2023 08:45:00
-    #                     Mar 15 2023 09:00:00,
-    #                     Mar 15 2023 09:15:00
-    #                     Mar 15 2023 09:30:00,
-    #                     Mar 15 2023 09:45:00
-    #                     Mar 15 2023 10:00:00
-    #                     Mar 15 2023 10:15:00
-    #                     Mar 15 2023 10:30:00,
-    #                     Mar 15 2023 16:00:00
-    #                     Mar 15 2023 22:00:00
-    #                     Mar 16 2023 08:00:00
-    #                     Mar 15 2022 08:00:00
-
-    cost_ = time_cost_calc(maps_timestamps, periodicities, 1678863600)
-
-    return cost_
 
 
 def fetch_maps(env, map_to_fetch=None):

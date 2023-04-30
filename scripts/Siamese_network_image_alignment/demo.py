@@ -39,35 +39,30 @@ def run_demo(img1_path, img2_path, img_width, img_height, path_to_model):
 
     model.eval()
     with torch.no_grad():
-        # print(read_image(IMG1_PATH).shape)
-        # print(read_image(IMG2_PATH).shape)
-        # print(IMG1_PATH)
-        # print(IMG2_PATH)
         if read_image(IMG1_PATH).shape[0] == 3 and read_image(IMG2_PATH).shape[0] == 3:
             source, target = transform(read_image(IMG1_PATH) / 255.0).to(device), \
                              transform(read_image(IMG2_PATH) / 255.0).to(device)[..., FRACTION//2:-FRACTION//2]
 
-        # print(source.shape, target.shape)
+            # print(source.shape, target.shape)
             histogram = model(source.unsqueeze(0), target.unsqueeze(0), padding=PAD)
-        # histogram = (histogram - t.mean(histogram)) / t.std(histogram)
-        # histogram = t.softmax(histogram, dim=1)
+            # histogram = (histogram - t.mean(histogram)) / t.std(histogram)
+            # histogram = t.softmax(histogram, dim=1)
 
             histogram_max = torch.max(histogram).cpu()
 
-
-        # # visualize:
-        # shift_hist = histogram.cpu()
-        # f = interpolate.interp1d(np.linspace(0, IMAGE_WIDTH, OUTPUT_SIZE), shift_hist, kind="cubic")
-        # interpolated = f(np.arange(IMAGE_WIDTH))
-        # ret = -(np.argmax(interpolated) - IMAGE_WIDTH // 2.0)
-        # plot_displacement(source.squeeze(0).cpu(),
-        #                   target.squeeze(0).cpu(),
-        #                   shift_hist.squeeze(0).cpu(),
-        #                   displacement=None,
-        #                   importance=None,
-        #                   name="result",
-        #                   dir="./")
-        # print("Estimated displacement is", ret, "pixels.")
+            # # visualize:
+            # shift_hist = histogram.cpu()
+            # f = interpolate.interp1d(np.linspace(0, IMAGE_WIDTH, OUTPUT_SIZE), shift_hist, kind="cubic")
+            # interpolated = f(np.arange(IMAGE_WIDTH))
+            # ret = -(np.argmax(interpolated) - IMAGE_WIDTH // 2.0)
+            # plot_displacement(source.squeeze(0).cpu(),
+            #                   target.squeeze(0).cpu(),
+            #                   shift_hist.squeeze(0).cpu(),
+            #                   displacement=None,
+            #                   importance=None,
+            #                   name="result",
+            #                   dir="./")
+            # print("Estimated displacement is", ret, "pixels.")
 
             return histogram_max
 

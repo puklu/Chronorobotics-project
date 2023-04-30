@@ -8,7 +8,6 @@ from constants import TO_UPLOAD_PATH, OBJECTS_PATH, ENV_BUCKET, MAP_BUCKET, FIRS
 from classes_ import Environment
 from fetch_utils import fetch_environment
 from meta_data_extraction import extract_map_metadata
-from data_manipulation import extract_map_metadata_manipulated, manipulated_map_upload
 
 logging.basicConfig(filename=f"{LOGS_PATH}/upload_utils.log", level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -147,8 +146,7 @@ def map_upload(env_name, map_name, start_node, end_node, path_to_directory_conta
     # Fetch env obj from db, append to it, then replace the one in db
     env_obj = fetch_environment(env_name)
     if env_obj:  # if the env exists in db then update it
-        if map_name not in env_obj.map_metadata[
-            'maps_names']:  # adding the name of the map to metadata if doesn't exist
+        if map_name not in env_obj.map_metadata['maps_names']:  # adding the name of the map to metadata if doesn't exist
             env_obj = extract_map_metadata(env_obj=env_obj, map_name=map_name, start_node_name=start_node,
                                            end_node_name=end_node, path=location_of_map)
 
@@ -216,77 +214,3 @@ def first_image_upload(env_name, map_name, path_to_directory_containing_map_dire
         CLIENT.fput_object(bucket_name=FIRST_IMAGE_BUCKET, object_name=image_obj_name, file_path=first_image_path)
         logging.info(f"Image {image_obj_name} uploaded to {FIRST_IMAGE_BUCKET} bucket")
         # print(f"Image {image_obj_name} uploaded to {FIRST_IMAGE_BUCKET} bucket")
-
-
-def batch_upload():
-    """
-    Uploads all the maps in maps_path directory and creates the corresponding env objects and uploads them.
-    NOTE: Start nodes, end nodes, and any other that need to be MANIPULATED should be manually entered in the method.
-    NOTE: To manipulate data, MANIPULATE flag should be set to True manually
-    """
-
-    # ******************************************************************************
-    # to be set by the user manually to give names to nodes
-    START_NODE_NAMES = ['a', 'b', 'c', 'd', 'e', 'f', 'b', 'd', 'c', 'b']
-    END_NODE_NAMES = ['b', 'c', 'd', 'e', 'f', 'a', 'e', 'g', 'g', 'e']
-
-    # *******************************************************************************
-    MANIPULATE = True  # ATTENTION !! Data is probably being manipulated !!
-    # *******************************************************************************
-    DISTANCE = [2, 4, 1, 1, 2, 8, 3, 1, 6, 1]
-    COST = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    TIMESTAMPS = [None, None, None, None, None, None, None, None, None, None]
-    # *******************************************************************************
-
-    maps_path = OBJECTS_PATH / "maps"  # path of maps on local
-
-    if not maps_path.is_dir():
-        maps_path.mkdir(parents=True, exist_ok=True)
-
-    number_of_environments = len(list(os.listdir(maps_path)))  # count of all the environments
-
-    if number_of_environments == 0:
-        print(
-            f"There are no maps in {maps_path} directory.")
-        return
-
-    environments = list(os.listdir(maps_path))  # list of all the environments
-
-    # iterating over each environment
-    for i in range(number_of_environments):
-
-        dirs_in_env_dir = list(os.listdir((maps_path / environments[i])))
-
-        dirs_in_env_dir.sort()  # ATTENTION! Sorting maps names. Hence naming of maps important when adding data (distance etc) manually.
-
-        maps = []
-
-        for dir_ in dirs_in_env_dir:
-            if not dir_.endswith(".zip"):
-                maps.append(dir_)
-
-        number_of_maps = len(maps)
-
-        # iterating over each map in the current environment
-        for j in range(number_of_maps):
-
-            map_name = maps[j]
-
-            start_node_name = START_NODE_NAMES[j]
-            end_node_name = END_NODE_NAMES[j]
-
-            if not MANIPULATE:
-                map_upload(env_name=environments[i],
-                           map_name=map_name,
-                           start_node=start_node_name,
-                           end_node=end_node_name,
-                           path_to_directory_containing_map_directory=f"{maps_path}/{environments[i]}")
-
-            elif MANIPULATE:
-                manipulated_map_upload(env_name=environments[i],
-                                       map_name=map_name,
-                                       start_node=start_node_name,
-                                       end_node=end_node_name,
-                                       manipulated_distance=DISTANCE[j],
-                                       manipulated_cost=COST[j],
-                                       path_to_directory_containing_map_directory=f"{maps_path}/{environments[i]}", )

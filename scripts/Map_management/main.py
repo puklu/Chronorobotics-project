@@ -2,7 +2,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-from upload_utils import batch_upload, map_upload
+from upload_utils import  map_upload
 from fetch_utils import save_env_details, fetch_maps, fetch_environment
 from delete_utils import delete_a_map, delete_all_maps_of_an_environment
 from find_path import get_path, print_path
@@ -85,7 +85,6 @@ def main():
             and not args.findpath \
             and not args.mani:
 
-        # batch_upload()  # upload to db # TODO: SHOULD BE UNCOMMENTED AFTER TESTING IS DONE. THE FOLLOWING LINES SHOULD BE REMOVED.
         env_name = 'env0'
 
         # TODO: Hardcoded values below for testing -----------------------------------------------------------------------------
@@ -310,33 +309,6 @@ def main():
             for map_ in shortest_path_maps:
                 fetch_maps(args.e, map_)
     # -----------------------------------------------------------------------------------------------------------
-
-    # ONLY FOR TESTING. SHOULD NOT BE CALLED OTHERWISE!! ---------------------------------------------------------
-    # when -u, -e, -mani are provided, map u is uploaded for env e from .ros with the manipulated length of the map
-    elif args.u \
-            and args.e \
-            and args.snode \
-            and args.enode \
-            and not args.m \
-            and not args.oe \
-            and not args.delamap \
-            and not args.delmaps \
-            and not args.findpath \
-            and args.mani:
-
-        map_name = args.u
-        env_name = args.e
-        start_node = args.snode
-        end_node = args.enode
-        manipulated_distance = int(args.mani[0])  # manipulating distance
-        manipulated_cost = int(args.mani[1])  # manipulating cost
-
-        manipulated_map_upload(env_name=env_name,
-                               map_name=map_name,
-                               start_node=start_node,
-                               end_node=end_node,
-                               manipulated_distance=manipulated_distance,
-                               manipulated_cost=manipulated_cost)
 
     else:
         raise Exception("Please try again, something is missing..")

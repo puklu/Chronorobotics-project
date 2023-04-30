@@ -29,8 +29,13 @@ SIAMESE_NETWORK_PATH = ROOT / 'scripts/Siamese_network_image_alignment/'
 PATH_TO_SIAMESE_MODEL = SIAMESE_NETWORK_PATH/ 'model_eunord.pt'
 
 RESULTS_PATH = ROOT / 'results/'
+if not RESULTS_PATH.is_dir():  # Creating the directory if it doesnt exist
+    RESULTS_PATH.mkdir(parents=True, exist_ok=True)
 PLOTS_PATH = RESULTS_PATH / 'plots/'
+
 LOGS_PATH = ROOT / 'logs/'
+if not LOGS_PATH.is_dir():  # Creating the directory if it doesnt exist
+    LOGS_PATH.mkdir(parents=True, exist_ok=True)
 
 # Buckets
 ENV_BUCKET = "environment"

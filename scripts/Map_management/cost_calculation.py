@@ -7,7 +7,6 @@ from warnings import warn
 import numpy as np
 from numpy import sin, pi, cos
 from scipy.special import softmax
-import pandas as pd
 from PIL import Image
 import tzlocal
 from datetime import datetime
@@ -167,8 +166,8 @@ def time_cost_calc(env_name, periodicities, amplitudes, phis, fremen=None, curre
     distance = []
 
     # TODO: The following dictionary is just testing data, MUST BE DELETED/COMMENTED AFTER TESTING
-    warn("Working with hardcoded testing data in final_cost_calc")
-    env_map_metadata['timestamp'] = TEST_DATA
+    # warn("Working with hardcoded testing data in final_cost_calc")
+    # env_map_metadata['timestamp'] = TEST_DATA
 
     for map_ in maps_names:
         maps_timestamps.append(env_map_metadata['timestamp'][map_][0])
@@ -374,8 +373,8 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
     map_andTimestamp_andLocal = env_obj.map_metadata['timestamp']
 
     # TODO: The following dictionary is just testing data, MUST BE DELETED/COMMENTED AFTER TESTING..works ONLY FOR env0
-    warn("Working with hardcoded testing data in calculate_similarity_matrix")
-    map_andTimestamp_andLocal = TEST_DATA
+    # warn("Working with hardcoded testing data in calculate_similarity_matrix")
+    # map_andTimestamp_andLocal = TEST_DATA
 
     map_andTimestamp_andLocal = dict(
         sorted(map_andTimestamp_andLocal.items(), key=lambda x: x[1][0]))  # sorting the dict by timestamps

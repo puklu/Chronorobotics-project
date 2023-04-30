@@ -1,6 +1,5 @@
 from datetime import datetime
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
 import seaborn as sns
 import numpy as np
 import tzlocal

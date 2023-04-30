@@ -198,7 +198,7 @@ def save_model(model, name, epoch, optimizer=None):
 def load_model(model, path, optimizer=None):
     checkpoint = t.load(path, map_location=t.device("cpu"))
     model.load_state_dict(checkpoint['model_state_dict'])
-    print("Loaded model at", path)
+    # print("Loaded model at", path)
     if optimizer is not None:
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         return model, optimizer

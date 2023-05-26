@@ -4,7 +4,7 @@ from pathlib import Path
 from minio import Minio
 import time
 
-CURRENT_SYSTEM_TIME = time.time()  # TODO: this might need a change
+CURRENT_SYSTEM_TIME = time.time()
 
 
 load_dotenv()
@@ -36,6 +36,9 @@ PLOTS_PATH = RESULTS_PATH / 'plots/'
 LOGS_PATH = ROOT / 'logs/'
 if not LOGS_PATH.is_dir():  # Creating the directory if it doesnt exist
     LOGS_PATH.mkdir(parents=True, exist_ok=True)
+
+WEIGHT_DISTANCE = 0.0
+WEIGHT_SIMILARITY = 1 #1 - WEIGHT_DISTANCE
 
 # Buckets
 ENV_BUCKET = "environment"

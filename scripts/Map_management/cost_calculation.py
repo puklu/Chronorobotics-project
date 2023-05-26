@@ -12,8 +12,8 @@ import tzlocal
 from datetime import datetime
 
 from visualise import pyplot_time_cost_line_plot, seaborn_time_cost_line_plot, visualise_heatmap, plot_time_series, \
-    plot_predicted_timeseries, plot_predicted_timeseries2
-from constants import CURRENT_SYSTEM_TIME, IMAGES_PATH, SIAMESE_NETWORK_PATH, PATH_TO_SIAMESE_MODEL, RESULTS_PATH
+    plot_predicted_timeseries, plot_predicted_timeseries2, seaborn_line_plot
+from constants import CURRENT_SYSTEM_TIME, IMAGES_PATH, SIAMESE_NETWORK_PATH, PATH_TO_SIAMESE_MODEL, RESULTS_PATH, WEIGHT_DISTANCE, WEIGHT_SIMILARITY
 from FreMEn import FreMEn
 
 sys.path.append(str(SIAMESE_NETWORK_PATH))
@@ -24,64 +24,6 @@ from Siamese_network_image_alignment.demo import run_demo
 # beta for softmax ---
 BETA = 1 / 50
 SAVE_PLOTS = True
-
-TEST_DATA = {"path0_map0": [1628441543.1538866, "2021-08-08 18:52:23"],
-             "path0_map1": [1628446944.9681673, "2021-08-08 20:22:24"],
-             "path0_map2": [1628457620, "2021-08-08 23:20:20"],
-             "path0_map3": [1628443562.5771434, "2021-08-08 19:26:02"],
-             "path0_map4": [1628445730.1549253, "2021-08-08 20:02:10"],
-             "path0_map5": [1628532555, "2021-08-09 20:09:15"],
-             "path0_map6": [1628447864.6729546, "2021-08-08 20:37:44"],
-             "path0_map7": [1628448852.1848671, "2021-08-08 20:54:12"],
-             "path0_map8": [1628450613.950567, "2021-08-08 21:23:33"],
-             "path0_map9": [1628537656, "2021-08-09 21:34:16"],
-             "path0_map10": [1628543174, "2021-08-09 23:06:14"],
-             "path0_map11": [1628629965, "2021-08-10 23:12:45"],
-             "path0_map12": [1628625016, "2021-08-10 21:50:16"],
-             "path0_map13": [1628715812, "2021-08-11 23:03:32"],
-             "path0_map15": [1628698644, "2021-08-11 18:17:24"],
-             "path0_map16": [1628612717, "2021-08-10 18:25:17"],
-             "path0_map17": [1628527576, "2021-08-09 18:46:16"],
-             "path0_map18": [1628533349, "2021-08-09 20:22:29"],
-             "path0_map19": [1628534238, "2021-08-09 20:37:18"],
-             "path0_map20": [1628429197, "2021-08-08 15:26:37"],
-             "path0_map21": [1628516065, "2021-08-09 15:34:25"],
-             "path0_map22": [1628603830, "2021-08-10 15:57:10"],
-             "path0_map23": [1628532992, "2021-08-09 20:16:32"],
-             "path0_map24": [1628620012, "2021-08-10 20:26:52"]
-             }
-
-TEST_DATA_test = {"path0_map0": [1628427600, "2021-08-08 15:00:00"],
-                  "path0_map1": [1628431200, "2021-08-08 16:00:00"],
-                  "path0_map2": [1628434800, "2021-08-08 17:00:00"],
-                  "path0_map3": [1628438400, "2021-08-08 18:00:00"],
-                  "path0_map4": [1628442000, "2021-08-08 19:00:00"],
-                  "path0_map5": [1628445600, "2021-08-08 20:00:00"],
-                  "path0_map6": [1628449200, "2021-08-08 21:00:00"],
-                  "path0_map7": [1628452800, "2021-08-08 22:00:00"],
-                  "path0_map8": [1628456400, "2021-08-08 23:00:00"],
-                  "path0_map9": [1628460000, "2021-08-09 00:00:00"],
-                  "path0_map10": [1628463600, "2021-08-09 01:00:00"],
-                  "path0_map11": [1628467200, "2021-08-09 02:00:00"],
-                  "path0_map12": [1628470800, "2021-08-09 03:00:00"],
-                  "path0_map13": [1628474400, "2021-08-09 04:00:00"],
-                  "path0_map15": [1628478000, "2021-08-09 05:00:00"],
-                  "path0_map16": [1628481600, "2021-08-09 06:00:00"],
-                  "path0_map17": [1628485200, "2021-08-09 07:00:00"],
-                  "path0_map18": [1628488800, "2021-08-09 08:00:00"],
-                  "path0_map19": [1628492400, "2021-08-09 09:00:00"],
-                  "path0_map20": [1628496000, "2021-08-09 10:00:00"],
-                  "path0_map21": [1628499600, "2021-08-09 11:00:00"],
-                  "path0_map22": [1628503200, "2021-08-09 12:00:00"],
-                  "path0_map23": [1628506800, "2021-08-09 13:00:00"],
-                  "path0_map24": [1628510400, "2021-08-09 14:00:00"]
-                  }
-
-size = 81
-rate = 3 * 3600
-time_period = 24 * 3600
-softmax_similarity_matrix = np.zeros((size, size))
-MAPS_TIMESTAMPS_TEST = np.arange(1628427600, 1628427600 + size * rate, rate)
 
 
 def convert_timestamp_to_local(timestamps):
@@ -126,8 +68,8 @@ def final_cost_calc(env_name, periodicities, amplitudes, phis, fremen=None, curr
 
     for map_ in time_cost:
         time_cost_for_map = time_cost[map_][0]
-        distance = time_cost[map_][0]
-        final_calculated_cost = 0 * distance + 1 * time_cost_for_map  # TODO: Needs to be decided
+        distance = time_cost[map_][1]
+        final_calculated_cost = WEIGHT_DISTANCE * distance + WEIGHT_SIMILARITY * time_cost_for_map  # Can be tuned as needed
         final_cost[map_].append(final_calculated_cost)
 
     # print(final_cost)
@@ -173,6 +115,12 @@ def time_cost_calc(env_name, periodicities, amplitudes, phis, fremen=None, curre
         maps_timestamps.append(env_map_metadata['timestamp'][map_][0])
         distance.append(env_map_metadata['distance'][map_])
 
+    # Normalize distance
+    normalized_distance = []
+    max_distance = max(distance)
+    for dist in distance:
+        normalized_distance.append(dist/max_distance)
+
     N = len(periodicities)
     M = len(maps_timestamps)
 
@@ -185,7 +133,7 @@ def time_cost_calc(env_name, periodicities, amplitudes, phis, fremen=None, curre
     # maps_timestamps = MAPS_TIMESTAMPS_TEST
     # M = len(maps_timestamps)
 
-    maps_timestamps = np.asarray(maps_timestamps, dtype=int)  # TODO: MAYBE dtype SHOULD BE FLOAT??
+    maps_timestamps = np.asarray(maps_timestamps, dtype=int)
     maps_timestamps = np.expand_dims(maps_timestamps, axis=-1)
     maps_timestamps = maps_timestamps.reshape(M, 1)
 
@@ -230,7 +178,7 @@ def time_cost_calc(env_name, periodicities, amplitudes, phis, fremen=None, curre
     for i in range(M):
         map_timestamp_local = datetime.fromtimestamp(maps_timestamps[i][0], local_timezone).strftime(
             '%Y-%m-%d %H:%M:%S')
-        time_costs[maps_names[i]] = [cost[i], distance[i], maps_timestamps[i][0], map_timestamp_local]
+        time_costs[maps_names[i]] = [cost[i], normalized_distance[i], maps_timestamps[i][0], map_timestamp_local]
 
     # PLOTTING THE COST
     if save_plot:
@@ -259,7 +207,7 @@ def time_cost_calc(env_name, periodicities, amplitudes, phis, fremen=None, curre
         # Write the header row
         # writer.writerow(f"Current time: {current_time_local}")
         writer.writerow(["Current time", current_time_local])
-        writer.writerow(["map name", "time_cost | distance | timestamp | timestamp_local"])
+        writer.writerow(["map name", "time_cost | normalized distance | timestamp | timestamp_local"])
 
         # Write the data rows
         for key, value in time_costs.items():
@@ -341,7 +289,6 @@ def image_similarity_matrix_update(similarity_matrix, images_names, maps_timesta
         # visualise_heatmap(softmax_similarity_matrix, map_names, map_names, title='Similarity matrix')
         visualise_heatmap(softmax_similarity_matrix, maps_timestamps_local, maps_timestamps_local,
                           title='Similarity matrix', env_name=env_name)
-        # visualise_fft(magnitude_spectrum)
 
     return similarity_matrix, softmax_similarity_matrix
 
@@ -368,6 +315,7 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
     from fetch_utils import save_env_details
     env_obj = fetch_environment(env_name)  # fetching the env details
     fetch_first_images(env_obj)
+    consumed_time = []
 
     # ---------------------------------------------------------------------------------------------------------------
     map_andTimestamp_andLocal = env_obj.map_metadata['timestamp']
@@ -403,6 +351,7 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
         width, height = img.size
 
     print("Calculating similarity matrix......")
+    t1 = time.time()
     for i in range(num_of_images):
         img1_path = str(IMAGES_PATH / names_of_images[i])
         for j in range(num_of_images):
@@ -413,7 +362,8 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
                                                    img_width=width,
                                                    img_height=height,
                                                    path_to_model=PATH_TO_SIAMESE_MODEL)
-
+                t2 = time.time()
+                consumed_time.append(t2-t1)
                 similarity_matrix[j][i] = similarity_matrix[i][j]  # assigning the values for the lower triangle
 
     softmax_similarity_matrix = np.zeros((num_of_images, num_of_images))
@@ -443,6 +393,8 @@ def calculate_similarity_matrix_and_periodicities(env_name, save_plot=SAVE_PLOTS
 
         visualise_heatmap(softmax_similarity_matrix, maps_timestamps_local, maps_timestamps_local,
                           title='Similarity matrix', env_name=env_name)
+
+        seaborn_line_plot(consumed_time, env_name=env_name)
 
     # -------------------------------------------------------------------------------------------------------------
     # deleting all the downloaded images to save space

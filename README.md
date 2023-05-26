@@ -1,5 +1,16 @@
 # Map Management System for Visual Teach and Repeat
 
+## Setting up the database
+
+1. cd into ```project/```.
+
+2. run ```docker-compose up```
+
+Database should be up running on `http://localhost:9090/`.
+Login credentials can be set in the `.env` file present in the same directory.
+
+
+
 ## a) Efficient management of maps
 MinIO db is used as the database service. Once the service is up and running, the tool uploads maps to `map` bucket. The corresponding metadata for the maps for an environment is uploaded to `env` bucket in the db.
 1. cd into ```project/scripts/Map_management/```.
@@ -48,3 +59,4 @@ the mathematical model of the environment is used to plan a path between any two
 
 The maps corresponding to the optimum path are fetched from the db into `~/.ros/fetched_maps/`
 
+Code from https://github.com/Zdeeno/Siamese-network-image-alignment.git is used for Neural Network related tasks for calculating likelihood of images.

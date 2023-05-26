@@ -40,7 +40,7 @@ def extract_map_metadata(env_obj, map_name, start_node_name, end_node_name, path
         Calculating timestamp for the map
         The starting point of times is assumed to be the timestamp for the map
     '''
-    starting_timestamp = times[0][0].to_time()  # TODO: this may need some change
+    starting_timestamp = times[0][0].to_time()
     local_timezone = tzlocal.get_localzone()  # get pytz timezone
     local_time = datetime.fromtimestamp(starting_timestamp, local_timezone).strftime('%Y-%m-%d %H:%M:%S')
 

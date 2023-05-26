@@ -152,14 +152,15 @@ def plot_predicted_timeseries(FreMEn_class, times, values, env_name, show_plot=S
     """
     plt.figure(figsize=(23, 12))
 
-    new_times = np.arange(times[0], times[-1], 3600)
+    new_times = np.arange(times[0], times[-1], 1800)
 
     times = times/3600
-    # ax = sns.scatterplot(x=times, y=values, marker='o', s=50, label="Actual")
-    ax = sns.lineplot(x=times, y=values, marker='o', label="Actual")
+    ax = sns.scatterplot(x=times, y=values, marker='x', s=50, label="Actual")
+    # ax = sns.lineplot(x=times, y=values, marker='o', label="Actual")
 
     predicted_values = FreMEn_class.predict(new_times)
-    ax = sns.lineplot(x=new_times/3600, y=predicted_values, marker='o', label='Predicted')
+    # ax = sns.scatterplot(x=new_times/3600, y=predicted_values, marker='x', s=50, label="Predicted")
+    ax = sns.lineplot(x=new_times/3600, y=predicted_values, label='Predicted', color='orange')
 
     ax.set_facecolor('#F0F0F0')
     ax.set_title(f"Actual vs Predicted Time Series", fontsize=20, fontweight='bold')
@@ -217,6 +218,32 @@ def plot_predicted_timeseries2(FreMEn_class, times, values, env_name, show_plot=
 
     # plt.scatter(times,values)
     plt.savefig(f"{PLOTS_PATH}/{env_name}_predicted_time_series2.eps", format='eps')
+
+    if show_plot:
+        plt.show()
+
+
+def seaborn_line_plot(y_axis_data, env_name, show_plot=SHOW_PLOT):
+    """
+    To plot cost vs timestamp using seaborn
+    Args:
+        y_axis_data: Time consumed till that map number
+        show_plot: Saves plot to results/plots/ directory if set to True. True by default
+
+    """
+
+    x_axis_data = np.arange(1,len(y_axis_data)+1)
+    plt.figure(figsize=(23, 12))
+    ax = sns.lineplot(x=x_axis_data, y=y_axis_data)
+    ax.set_facecolor('#F0F0F0')
+    plt.xticks(fontsize=18)
+    plt.yticks(fontsize=18)
+    ax.grid(True, linewidth=1.0, color='white')
+    ax.set_xlabel("Images compared", fontsize=18, fontweight='bold', labelpad=20)
+    ax.set_ylabel("Time consumed [sec]", fontsize=18, fontweight='bold', labelpad=20)
+    fig = plt.gcf()
+    fig.subplots_adjust(bottom=0.20)
+    plt.savefig(f"{PLOTS_PATH}/{env_name}_time_consumed.eps", format='eps', bbox_inches="tight")
 
     if show_plot:
         plt.show()
